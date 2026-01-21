@@ -1,0 +1,3087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏交易 - 游戏币、道具、账号交易平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'Malgun Gothic', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        header {
+            background: white;
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* 最上方横幅图案 - 使用AION主题横幅 */
+        .top-banner {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .top-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6952EB;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-left: 30px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #6952EB;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* 游戏选择界面样式 */
+        .game-selection {
+            background: #f8fafc;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .game-selection-title {
+            text-align: center;
+            color: #1e293b;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-shadow: none;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: auto;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+            border-color: #4f46e5;
+        }
+
+        .game-image {
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            margin: 0 0 15px 0;
+            border-radius: 8px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .game-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .game-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* 导航按钮 */
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #4f46e5;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 过滤部分 */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            width: 100px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-option {
+            padding: 8px 16px;
+            background: #f5f7fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .filter-option:hover {
+            background: #e2e8f0;
+        }
+
+        .filter-option.active {
+            background: #6952EB;
+            color: white;
+            border-color: #6952EB;
+        }
+
+        /* 商品列表 */
+        .product-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .product-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .product-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4757;
+            margin-top: 10px;
+        }
+
+        /* 推荐产品表格 */
+        .recommended-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .recommended-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .recommended-table th,
+        .recommended-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .recommended-table th {
+            background: #f8fafc;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 5px;
+        }
+
+        .modal-close:hover {
+            color: black;
+        }
+
+        .modal-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6952EB;
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 12px;
+            background: #6952EB;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .form-submit:hover {
+            background: #5a46d4;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .form-footer a {
+            color: #6952EB;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #ff4757;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* 页脚 */
+        /* 背景音乐控制 */
+        .music-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .music-btn {
+            background: rgba(105, 82, 235, 0.8);
+            color: white;
+            border: none;
+            padding: 5px 7.5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 7px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .music-btn:hover {
+            background: rgba(105, 82, 235, 1);
+            transform: scale(1.05);
+        }
+        
+        /* 横幅滚动通知样式 */
+        .top-banner {
+            position: relative;
+        }
+        
+        .banner-marquee {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        
+        .banner-marquee-content {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+            padding: 0 20px;
+        }
+        
+        @keyframes marquee {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        
+        /* 广告容器样式 */
+        .advertisement-container {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            max-width: 1200px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            position: relative;
+        }
+        
+        /* 广告滚动内容样式 */
+        .advertisement-scroll-content {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* 隐藏滚动条但保持滚动功能 */
+        .advertisement-scroll-content::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .advertisement-scroll-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .advertisement-scroll-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .advertisement-scroll-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* 广告滚动控制按钮 */
+        .ad-scroll-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .ad-scroll-btn {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .ad-scroll-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        /* 广告容器横向滚动条样式 */
+        .advertisement-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .advertisement-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .advertisement-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .advertisement-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .advertisement-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            animation: slideIn 0.5s ease-in-out;
+            min-height: 120px;
+            min-width: 250px;
+            max-width: 350px;
+            white-space: normal;
+            vertical-align: top;
+            background: #f8fafc;
+        }
+        
+        .advertisement-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .advertisement-info {
+            flex: 1;
+        }
+        
+        .advertisement-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .advertisement-text {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        footer {
+            background: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* 统计信息 */
+        .stats-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #6952EB;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            /* 导航栏 */
+            .nav-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-menu {
+                margin-top: 10px;
+                gap: 15px;
+            }
+
+            /* 过滤部分 */
+            .filter-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .filter-label {
+                width: auto;
+            }
+
+            /* 商品列表 */
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* 统计信息 */
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* 游戏选择界面 - 参考 itembay 移动端适配 */
+            .game-selection-title {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+
+            .game-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                max-width: 100%;
+                padding: 0 20px;
+            }
+
+            .game-card {
+                flex-direction: column;
+                height: auto;
+                text-align: center;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景音乐 -->
+    <audio id="backgroundMusic" loop preload="auto" volume="0.2">
+        <source src="aion背景音乐.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+    
+    <!-- 背景音乐控制按钮 -->
+    <div class="music-controls">
+        <button id="musicToggle" class="music-btn">🔊 背景音乐</button>
+    </div>
+    
+    <!-- 最上方横幅图案 -->
+    <div class="top-banner">
+        <img src="img/首页背景条.jpg" alt="游戏交易平台横幅">
+        <!-- 滚动通知内容 -->
+        <div class="banner-marquee" id="bannerMarquee">
+            <div class="banner-marquee-content" id="marqueeContent">
+                <!-- 动态生成滚动通知内容 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">아이템거래사이트-ybabc</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#" class="nav-link">首页</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">出售</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">求购</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">我的交易</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" id="loginBtn">登录</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- 游戏选择界面 -->
+    <div class="game-selection" id="gameSelection">
+        <div class="container">
+            <h1 class="game-selection-title">게임 선택</h1>
+            <div class="game-grid" id="gameGrid">
+                <!-- 动态生成游戏种类 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 交易平台界面 -->
+    <div class="container" id="mainContainer" style="display: none;">
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-label">交易类型</div>
+                <div class="filter-options">
+                    <div class="filter-option active">出售</div>
+                    <div class="filter-option">求购</div>
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-label">商品类型</div>
+                <div class="filter-options">
+                    <div class="filter-option active">全部</div>
+                    <div class="filter-option">游戏币</div>
+                    <div class="filter-option">道具</div>
+                    <div class="filter-option">账号</div>
+                    <div class="filter-option">其他</div>
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-label">交易状态</div>
+                <div class="filter-options">
+                    <div class="filter-option active">可交易商品</div>
+                    <div class="filter-option">已完成交易</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 推荐产品 -->
+        <div class="recommended-section">
+            <h2 class="section-title">推荐产品</h2>
+            
+            <!-- 管理员添加商品表单 -->
+            <div id="addProductForm" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; display: none;">
+                <h3>添加新商品</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label>商品名称：</label>
+                        <input type="text" id="newProductName" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入商品名称">
+                    </div>
+                    <div>
+                        <label>服务器名称：</label>
+                        <input type="text" id="newProductServer" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入服务器名称">
+                    </div>
+                    <div>
+                        <label>分类名称：</label>
+                        <input type="text" id="newProductCategory" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入分类名称">
+                    </div>
+                    <div>
+                        <label>单位：</label>
+                        <input type="text" id="newProductUnit" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入单位">
+                    </div>
+                    <div>
+                        <label>价格：</label>
+                        <input type="number" id="newProductPrice" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入价格" min="0" step="0.01">
+                    </div>
+                    <div>
+                        <label>库存：</label>
+                        <input type="number" id="newProductStock" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入库存" min="0">
+                    </div>
+                    <div>
+                        <label>卖家：</label>
+                        <input type="text" id="newProductSeller" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入卖家名称">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="addNewProduct()" class="form-submit" style="width: auto; padding: 8px 16px; background: #10b981;">添加商品</button>
+                    <button type="button" onclick="toggleAddProductForm()" class="form-submit" style="width: auto; padding: 8px 16px; background: #6b7280;">取消</button>
+                </div>
+            </div>
+            
+            <!-- 管理员控制按钮 -->
+            <div id="adminControls" style="margin-bottom: 15px;">
+                <!-- 动态生成 -->
+            </div>
+            
+            <table class="recommended-table">
+                <thead>
+                    <tr>
+                        <th>商品名称</th>
+                        <th>服务器</th>
+                        <th>单位</th>
+                        <th>库存</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="recommendedTableBody">
+                    <!-- 动态生成推荐产品 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 商品列表 -->
+        <div class="product-section">
+            <h2 class="section-title">全部商品</h2>
+            <div class="product-grid" id="productGrid">
+                <!-- 动态生成商品列表 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeLogin">&times;</button>
+            <h2 class="modal-title">用户登录</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="username" placeholder="请输入用户名">
+                    <div class="error-message" id="usernameError">用户名格式不正确</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="password" placeholder="请输入密码">
+                    <div class="error-message" id="passwordError">密码格式不正确</div>
+                </div>
+                <!-- 口令密码输入框，默认隐藏，仅当admin登录3次错误后显示 -->
+                <div class="form-group" id="passphraseGroup" style="display: none;">
+                    <label class="form-label">或使用口令密码</label>
+                    <input type="password" class="form-input" id="loginPassphrase" placeholder="请输入口令密码">
+                    <div class="error-message" id="passphraseError">口令密码不正确</div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="rememberMe">
+                        <span>记住我</span>
+                    </label>
+                </div>
+                <button type="submit" class="form-submit">登录</button>
+            </form>
+            <div class="form-footer">
+                还没有账号？<a id="switchToRegister">立即注册</a><br>
+                <a href="#">忘记密码？</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册模态框 -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeRegister">&times;</button>
+            <h2 class="modal-title">会员注册</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="regUsername" placeholder="请输入用户名（3-20个字符）">
+                    <div class="error-message" id="regUsernameError">用户名格式不正确</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">手机号码</label>
+                    <input type="tel" class="form-input" id="regPhone" placeholder="请输入手机号码">
+                    <div class="error-message" id="regPhoneError">请输入有效的手机号码</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="regPassword" placeholder="请输入密码（至少6个字符）">
+                    <div class="error-message" id="regPasswordError">密码至少需要6个字符</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-input" id="regConfirmPassword" placeholder="请再次输入密码">
+                    <div class="error-message" id="regConfirmPasswordError">两次输入的密码不一致</div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="agreeTerms">
+                        <span>我已阅读并同意<a href="#" style="color: #6952EB;">服务条款</a>和<a href="#" style="color: #6952EB;">隐私政策</a></span>
+                    </label>
+                    <div class="error-message" id="agreeTermsError">请同意服务条款</div>
+                </div>
+                <button type="submit" class="form-submit">注册</button>
+            </form>
+            <div class="form-footer">
+                已有账号？<a id="switchToLogin">立即登录</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员后台 -->
+    <div class="modal" id="adminModal" style="display: none; z-index: 3000;">
+        <div class="modal-content" style="width: 90%; max-width: 1000px; margin: 5% auto;">
+            <button class="modal-close" id="closeAdminModal">&times;</button>
+            <h2 class="modal-title">管理后台</h2>
+            
+            <!-- 管理后台导航 -->
+            <div class="admin-nav" style="margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                <button class="admin-nav-btn active" onclick="showAdminSection('games')">游戏管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('products')">商品管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('users')">用户管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('notifications')">滚动通知管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('advertisements')">广告管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('data')">数据管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('profile')">个人设置</button>
+            </div>
+            
+            <!-- 游戏管理 -->
+            <div id="gamesSection" class="admin-section">
+                <h3>游戏管理</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>添加/编辑游戏</h4>
+                    <form id="gameForm">
+                        <input type="hidden" id="gameId">
+                        <input type="hidden" id="gameImageUrl">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label>游戏名称：</label>
+                                <input type="text" id="gameName" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label>游戏图标：</label>
+                                <input type="file" id="gameImageFile" accept="image/*" style="width: 100%; padding: 8px; margin-top: 5px;">
+                                <div style="margin-top: 10px; display: none;" id="gameImagePreviewContainer">
+                                    <img id="gameImagePreview" style="max-width: 100px; max-height: 100px; border-radius: 4px; object-fit: contain;">
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: flex-end; gap: 10px;">
+                                <button type="submit" class="form-submit" style="width: auto; padding: 8px 16px;">保存游戏</button>
+                                <button type="button" id="cancelGameEdit" class="form-submit" style="width: auto; padding: 8px 16px; background: #6b7280;" onclick="cancelGameEdit()">取消</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 游戏列表 -->
+                <div class="admin-list">
+                    <h4>游戏列表</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">游戏名称</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">图标</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamesList">
+                            <!-- 动态生成游戏列表 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 商品管理 -->
+            <div id="productsSection" class="admin-section" style="display: none;">
+                <h3>商品管理</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>添加/编辑商品</h4>
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label>所属游戏：</label>
+                                <select id="productGameId" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                    <!-- 动态生成游戏选项 -->
+                                </select>
+                            </div>
+                            <div>
+                                <label>商品名称：</label>
+                                <input type="text" id="productName" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label>服务器名称：</label>
+                                <input type="text" id="productServer" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label>分类名称：</label>
+                                <input type="text" id="productCategory" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label>单位：</label>
+                                <input type="text" id="productUnit" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="如：个、件、组等">
+                            </div>
+                            <div>
+                                <label>价格：</label>
+                                <input type="number" id="productPrice" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" min="0" step="0.01">
+                            </div>
+                            <div>
+                                <label>库存：</label>
+                                <input type="number" id="productStock" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" min="0">
+                            </div>
+                            <div>
+                                <label>卖家：</label>
+                                <input type="text" id="productSeller" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="form-submit" style="width: auto; padding: 8px 16px;">保存商品</button>
+                            <button type="button" id="cancelProductEdit" class="form-submit" style="width: auto; padding: 8px 16px; background: #6b7280;" onclick="cancelProductEdit()">取消</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 商品列表 -->
+                <div class="admin-list">
+                    <h4>商品列表</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">ID</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">商品名称</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">所属游戏</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">服务器</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">分类名称</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">单位</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">价格</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">库存</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">卖家</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">操作</th>
+                        </tr>
+                    </thead>
+                        <tbody id="productsList">
+                            <!-- 动态生成商品列表 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 用户管理 -->
+            <div id="usersSection" class="admin-section" style="display: none;">
+                <h3>用户管理</h3>
+                <div class="admin-list">
+                    <h4>用户列表</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">用户名</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">电话号码</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">邮箱</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">注册日期</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">管理员</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersList">
+                            <!-- 动态生成用户列表 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 滚动通知管理 -->
+            <div id="notificationsSection" class="admin-section" style="display: none;">
+                <h3>滚动通知管理</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>添加/编辑滚动通知</h4>
+                    <form id="notificationForm">
+                        <input type="hidden" id="notificationId">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label>通知内容：</label>
+                                <input type="text" id="notificationContent" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="请输入滚动通知内容">
+                            </div>
+                            <div>
+                                <label>是否启用：</label>
+                                <select id="notificationEnabled" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                    <option value="true">启用</option>
+                                    <option value="false">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="form-submit" style="width: auto; padding: 8px 16px;">保存通知</button>
+                            <button type="button" id="cancelNotificationEdit" class="form-submit" style="width: auto; padding: 8px 16px; background: #6b7280;" onclick="cancelNotificationEdit()">取消</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 滚动通知列表 -->
+                <div class="admin-list">
+                    <h4>滚动通知列表</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">通知内容</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">状态</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notificationsList">
+                            <!-- 动态生成滚动通知列表 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 广告管理 -->
+            <div id="advertisementsSection" class="admin-section" style="display: none;">
+                <h3>广告管理</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>添加/编辑广告</h4>
+                    <form id="advertisementForm">
+                        <input type="hidden" id="advertisementId">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label>广告标题：</label>
+                                <input type="text" id="advertisementTitle" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="请输入广告标题">
+                            </div>
+                            <div>
+                                <label>广告内容：</label>
+                                <textarea id="advertisementContent" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px; height: 80px;" placeholder="请输入广告内容"></textarea>
+                            </div>
+                            <div>
+                                <label>广告图片：</label>
+                                <input type="file" id="advertisementImageFile" accept="image/*" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                <input type="hidden" id="advertisementImage">
+                                <div style="margin-top: 10px; display: none;" id="imagePreviewContainer">
+                                    <img id="imagePreview" style="max-width: 150px; max-height: 150px; border-radius: 4px;">
+                                </div>
+                            </div>
+                            <div>
+                                <label>是否启用：</label>
+                                <select id="advertisementEnabled" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                    <option value="true">启用</option>
+                                    <option value="false">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="form-submit" style="width: auto; padding: 8px 16px;">保存广告</button>
+                            <button type="button" id="cancelAdvertisementEdit" class="form-submit" style="width: auto; padding: 8px 16px; background: #6b7280;" onclick="cancelAdvertisementEdit()">取消</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 广告列表 -->
+                <div class="admin-list">
+                    <h4>广告列表</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">广告标题</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">广告内容</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">图片</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">状态</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="advertisementsList">
+                            <!-- 动态生成广告列表 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 数据管理 -->
+            <div id="dataSection" class="admin-section" style="display: none;">
+                <h3>数据管理</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>数据导出</h4>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <p style="margin: 0;">将当前所有数据导出为JSON文件：</p>
+                        <button type="button" class="form-submit" style="padding: 10px 20px; background: #6952EB;" onclick="exportData()">导出数据</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 个人设置 -->
+            <div id="profileSection" class="admin-section" style="display: none;">
+                <h3>个人设置</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>修改密码</h4>
+                    <form id="changePasswordForm">
+                        <div style="max-width: 500px; margin: 0 auto;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px;">当前密码：</label>
+                                <input type="password" id="currentPassword" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="忘记密码可使用下方口令">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px;">或使用口令密码：</label>
+                                <input type="password" id="passphrase" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;" placeholder="输入口令密码">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px;">新密码：</label>
+                                <input type="password" id="newPassword" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 5px;">确认新密码：</label>
+                                <input type="password" id="confirmPassword" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" class="form-submit" style="width: auto; padding: 10px 20px; background: #6952EB;">保存修改</button>
+                                <button type="button" class="form-submit" style="width: auto; padding: 10px 20px; background: #6b7280;" onclick="cancelChangePassword()">取消</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 滚动广告容器 -->
+    <div class="advertisement-container" id="advertisementContainer">
+        <!-- 广告滚动内容 -->
+        <div class="advertisement-scroll-content" id="advertisementScrollContent">
+            <!-- 动态生成滚动广告内容 -->
+        </div>
+        <!-- 广告滚动控制按钮 -->
+        <div class="ad-scroll-controls">
+            <button class="ad-scroll-btn" id="adAutoScrollBtn">自动滚动</button>
+            <button class="ad-scroll-btn" id="adStopScrollBtn">停止滚动</button>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <p>&copy; 2024 游戏交易平台 - 版权所有-联系电话:13894338888</p>
+    </footer>
+
+    <script>
+        // 数据存储键名
+        const STORAGE_KEYS = {
+            USERS: 'game_trade_users',
+            PRODUCTS: 'game_trade_products',
+            NOTIFICATIONS: 'game_trade_notifications',
+            ADVERTISEMENTS: 'game_trade_advertisements',
+            CURRENT_USER: 'game_trade_current_user',
+            SERVERS: 'game_trade_servers',
+            GAMES: 'game_trade_games'
+        };
+
+        // 当前选择的游戏
+        let currentGame = null;
+        let currentUser = null;
+        let games = [];
+        let products = [];
+        let servers = [];
+        let notifications = [];
+        let advertisements = [];
+        
+        // 登录失败计数器，存储在localStorage中
+        const LOGIN_FAIL_COUNT_KEY = 'game_trade_login_fail_count';
+        let loginFailCount = loadFromStorage(LOGIN_FAIL_COUNT_KEY, {});
+
+        // 初始数据
+        const INITIAL_DATA = {
+            users: {
+                'admin': {
+                    username: 'admin',
+                    email: 'admin@system.com',
+                    password: 'admin',
+                    isAdmin: true,
+                    registeredDate: '2024-01-01'
+                }
+            },
+            games: [
+                {id: 1, name: '아이온2', image: 'img/아이온.jpg'},
+                {id: 2, name: '리니지2', image: 'img/리니지2.jpg'},
+                {id: 3, name: '리니지M', image: 'img/리니지m.jpg'}
+            ],
+            products: [
+                {id: 1, name: '满级神装 3000战力', server: '天启[天族]', unit: '件', price: 899, stock: 5, category: '装备', seller: '装备专卖', gameId: 1},
+                {id: 2, name: '游戏币 手工打金', server: '荣耀[魔族]', unit: '万', price: 320, stock: 999, category: '游戏币', seller: '游戏币商', gameId: 1},
+                {id: 3, name: '满级账号 2800战力', server: '永恒[天族]', unit: '个', price: 1599, stock: 1, category: '账号', seller: '账号商', gameId: 1}
+            ],
+            servers: [
+                {id: 1, name: '天启[天族]', gameId: 1},
+                {id: 2, name: '荣耀[魔族]', gameId: 1},
+                {id: 3, name: '永恒[天族]', gameId: 1}
+            ],
+            notifications: [
+                {id: 1, content: '欢迎来到游戏交易平台！', enabled: true},
+                {id: 2, content: '现在注册即可获得5%的折扣！', enabled: true}
+            ],
+            advertisements: [
+                {id: 1, title: '新服开启', content: '新服天启[天族]已开启，欢迎加入！', image: '', enabled: true},
+                {id: 2, title: '限时优惠', content: '游戏币购买享受9折优惠，限时3天！', image: '', enabled: true}
+            ]
+        };
+
+        // 从localStorage加载数据
+        function loadFromStorage(key, defaultValue) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                return defaultValue;
+            }
+        }
+
+        // 保存数据到localStorage
+        function saveToStorage(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error('保存数据失败:', error);
+                return false;
+            }
+        }
+        
+        // 导出数据为JSON文件
+        function exportData() {
+            try {
+                // 获取所有数据
+                const allData = {
+                    users: loadFromStorage(STORAGE_KEYS.USERS, []),
+                    games: loadFromStorage(STORAGE_KEYS.GAMES, []),
+                    products: loadFromStorage(STORAGE_KEYS.PRODUCTS, []),
+                    servers: loadFromStorage(STORAGE_KEYS.SERVERS, []),
+                    exportTime: new Date().toISOString()
+                };
+                
+                // 转换为JSON字符串
+                const jsonStr = JSON.stringify(allData, null, 2);
+                
+                // 创建Blob对象
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                
+                // 创建下载链接
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `game_trade_data_${new Date().getTime()}.json`;
+                
+                // 触发下载
+                document.body.appendChild(a);
+                a.click();
+                
+                // 清理
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert('数据导出成功！');
+            } catch (error) {
+                console.error('数据导出失败:', error);
+                alert('数据导出失败！请查看控制台获取详细信息。');
+            }
+        }
+
+
+        
+        // 初始化数据
+        async function initializeData() {
+            // 直接使用localStorage或初始数据，不再尝试从服务器加载
+            // 加载用户数据
+            const users = loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
+            saveToStorage(STORAGE_KEYS.USERS, users);
+            
+            // 加载游戏数据
+            games = loadFromStorage(STORAGE_KEYS.GAMES, INITIAL_DATA.games);
+            saveToStorage(STORAGE_KEYS.GAMES, games);
+            
+            // 加载商品数据
+            products = loadFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_DATA.products);
+            saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+            
+            // 加载服务器数据
+            servers = loadFromStorage(STORAGE_KEYS.SERVERS, INITIAL_DATA.servers);
+            saveToStorage(STORAGE_KEYS.SERVERS, servers);
+            
+            // 加载通知数据
+            notifications = loadFromStorage(STORAGE_KEYS.NOTIFICATIONS, INITIAL_DATA.notifications);
+            saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+            
+            // 加载广告数据
+            advertisements = loadFromStorage(STORAGE_KEYS.ADVERTISEMENTS, INITIAL_DATA.advertisements);
+            saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+            
+            // 加载当前用户
+            currentUser = loadFromStorage(STORAGE_KEYS.CURRENT_USER, null);
+        }
+
+        // 生成游戏选择界面
+        function generateGameSelection() {
+            const gameGrid = document.getElementById('gameGrid');
+            if (!gameGrid) return;
+            
+            gameGrid.innerHTML = '';
+            
+            games.forEach(game => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.addEventListener('click', () => selectGame(game));
+                
+                // 创建游戏图片容器
+                const gameImageContainer = document.createElement('div');
+                gameImageContainer.className = 'game-image';
+                
+                // 创建游戏图片
+                const gameImage = document.createElement('img');
+                gameImage.src = game.image;
+                gameImage.alt = game.name;
+                gameImage.style.width = '100%';
+                gameImage.style.height = '100%';
+                gameImage.style.objectFit = 'contain';
+                
+                // 将图片添加到容器
+                gameImageContainer.appendChild(gameImage);
+                
+                const gameName = document.createElement('div');
+                gameName.className = 'game-name';
+                gameName.textContent = game.name;
+                
+                gameCard.appendChild(gameImageContainer);
+                gameCard.appendChild(gameName);
+                gameGrid.appendChild(gameCard);
+            });
+        }
+
+        // 选择游戏
+        function selectGame(game) {
+            // 检查是否登录
+            if (!currentUser) {
+                // 未登录，显示登录模态框
+                alert('请先登录才能进入交易平台！');
+                document.getElementById('loginModal').style.display = 'block';
+                
+                return;
+            }
+            
+            currentGame = game;
+            document.getElementById('gameSelection').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            generateProductList();
+            generateRecommendedProducts();
+        }
+
+        // 生成商品列表
+        function generateProductList() {
+            const productGrid = document.getElementById('productGrid');
+            if (!productGrid) return;
+            
+            productGrid.innerHTML = '';
+            
+            const filteredProducts = products.filter(product => product.gameId === currentGame.id);
+            
+            filteredProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                productCard.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-info">服务器: ${product.server}</div>
+                    <div class="product-info">类型: ${product.category}</div>
+                    <div class="product-info">单位: ${product.unit}</div>
+                    <div class="product-info">卖家: ${product.seller}</div>
+                    <div class="product-info">库存: ${product.stock}</div>
+                    <div class="product-price">¥${product.price}/${product.unit}</div>
+                `;
+                
+                productGrid.appendChild(productCard);
+            });
+        }
+
+        // 生成管理员控制按钮
+        function generateAdminControls() {
+            const adminControls = document.getElementById('adminControls');
+            if (!adminControls) return;
+            
+            if (currentUser && currentUser.isAdmin && currentGame) {
+                adminControls.innerHTML = `
+                    <button onclick="toggleAddProductForm()" class="form-submit" style="width: auto; padding: 8px 16px; background: #6952EB;">添加新商品</button>
+                `;
+            } else {
+                adminControls.innerHTML = '';
+            }
+        }
+        
+        // 切换添加商品表单显示/隐藏
+        function toggleAddProductForm() {
+            const addProductForm = document.getElementById('addProductForm');
+            if (addProductForm.style.display === 'none' || addProductForm.style.display === '') {
+                addProductForm.style.display = 'block';
+            } else {
+                addProductForm.style.display = 'none';
+            }
+        }
+        
+        // 添加新商品
+        function addNewProduct() {
+            // 获取表单数据
+            const productName = document.getElementById('newProductName').value.trim();
+            const productServer = document.getElementById('newProductServer').value.trim();
+            const productCategory = document.getElementById('newProductCategory').value.trim();
+            const productUnit = document.getElementById('newProductUnit').value.trim();
+            const productPrice = parseFloat(document.getElementById('newProductPrice').value) || 0;
+            const productStock = parseInt(document.getElementById('newProductStock').value) || 0;
+            const productSeller = document.getElementById('newProductSeller').value.trim();
+            
+            // 验证表单
+            if (!productName) {
+                alert('请输入商品名称！');
+                return;
+            }
+            
+            if (!productServer) {
+                alert('请输入服务器名称！');
+                return;
+            }
+            
+            if (!productCategory) {
+                alert('请输入分类名称！');
+                return;
+            }
+            
+            if (!productUnit) {
+                alert('请输入单位！');
+                return;
+            }
+            
+            if (!productSeller) {
+                alert('请输入卖家名称！');
+                return;
+            }
+            
+            // 创建新商品
+            const newProduct = {
+                id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+                name: productName,
+                server: productServer,
+                category: productCategory,
+                unit: productUnit,
+                price: productPrice,
+                stock: productStock,
+                seller: productSeller,
+                gameId: currentGame.id
+            };
+            
+            // 添加到商品列表
+            products.push(newProduct);
+            
+            // 保存到存储
+            saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+            
+            // 更新列表
+            generateRecommendedProducts();
+            generateProductList();
+            
+            // 清空表单
+            document.getElementById('newProductName').value = '';
+            document.getElementById('newProductServer').value = '';
+            document.getElementById('newProductCategory').value = '';
+            document.getElementById('newProductUnit').value = '';
+            document.getElementById('newProductPrice').value = '';
+            document.getElementById('newProductStock').value = '';
+            document.getElementById('newProductSeller').value = '';
+            
+            // 隐藏表单
+            toggleAddProductForm();
+            
+            alert('商品添加成功！');
+        }
+        
+        // 生成推荐产品
+        function generateRecommendedProducts() {
+            // 更新推荐产品标题，显示当前游戏名称
+            const sectionTitle = document.querySelector('.recommended-section .section-title');
+            if (sectionTitle && currentGame) {
+                sectionTitle.textContent = `${currentGame.name} - 推荐产品`;
+            }
+            
+            // 生成管理员控制按钮
+            generateAdminControls();
+            
+            const tableBody = document.getElementById('recommendedTableBody');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            const filteredProducts = products.filter(product => product.gameId === currentGame.id);
+            
+            filteredProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.dataset.productId = product.id;
+                
+                // 检查是否为管理员，管理员可以编辑，普通用户只能查看
+                if (currentUser && currentUser.isAdmin) {
+                    // 管理员模式 - 可编辑表格
+                    row.innerHTML = `
+                        <td>
+                            <input type="text" class="edit-input" value="${product.name}" data-field="name" style="width: 150px; padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        </td>
+                        <td>
+                            <input type="text" class="edit-input" value="${product.server}" data-field="server" style="width: 120px; padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        </td>
+                        <td style="display: flex; gap: 5px; align-items: center;">
+                            <input type="number" class="edit-input" value="${product.price}" data-field="price" style="width: 80px; padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" min="0" step="0.01">
+                            <span>/</span>
+                            <input type="text" class="edit-input" value="${product.unit}" data-field="unit" style="width: 50px; padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        </td>
+                        <td>
+                            <input type="number" class="edit-input" value="${product.stock}" data-field="stock" style="width: 60px; padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px;" min="0">
+                        </td>
+                        <td>
+                            <button class="form-submit" onclick="saveRecommendedProduct(${product.id})" style="width: auto; padding: 5px 10px; font-size: 12px; background: #10b981;">保存</button>
+                            <button class="form-submit" onclick="deleteRecommendedProduct(${product.id})" style="width: auto; padding: 5px 10px; font-size: 12px; background: #ef4444; margin-left: 5px;">删除</button>
+                        </td>
+                    `;
+                } else {
+                    // 普通用户模式 - 只读表格
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>${product.server}</td>
+                        <td>¥${product.price}/${product.unit}</td>
+                        <td>${product.stock}</td>
+                        <td><button class="form-submit" style="width: auto; padding: 5px 10px; font-size: 12px;">购买</button></td>
+                    `;
+                }
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 保存推荐商品修改
+        function saveRecommendedProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            // 获取编辑后的值
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            const inputs = row.querySelectorAll('.edit-input');
+            
+            const updatedData = {};
+            inputs.forEach(input => {
+                const field = input.dataset.field;
+                const value = input.value.trim();
+                
+                // 根据字段类型进行类型转换
+                if (field === 'price' || field === 'stock') {
+                    updatedData[field] = parseFloat(value) || 0;
+                } else {
+                    updatedData[field] = value;
+                }
+            });
+            
+            // 更新商品数据
+            Object.assign(product, updatedData);
+            
+            // 保存到存储
+            saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+            
+            // 更新商品列表
+            generateProductList();
+            
+            alert('商品信息保存成功！');
+        }
+        
+        // 删除推荐商品
+        function deleteRecommendedProduct(productId) {
+            if (confirm('确定要删除这个商品吗？')) {
+                products = products.filter(p => p.id !== productId);
+                saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                
+                // 更新列表
+                generateRecommendedProducts();
+                generateProductList();
+                
+                alert('商品删除成功！');
+            }
+        }
+
+        // 返回首页
+        function backToHome() {
+            currentGame = null;
+            document.getElementById('gameSelection').style.display = 'block';
+            document.getElementById('mainContainer').style.display = 'none';
+        }
+
+        // 退回按钮
+        function goBack() {
+            // 简单实现：返回游戏选择界面
+            backToHome();
+        }
+
+        // 更新导航栏
+        function updateNavbar() {
+            const navMenu = document.querySelector('.nav-menu');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (currentUser) {
+                // 已登录状态
+                loginBtn.innerHTML = currentUser.username;
+                
+                // 检查是否已有管理员菜单
+                let adminMenuItem = document.getElementById('adminMenu');
+                if (currentUser.isAdmin && !adminMenuItem) {
+                    // 添加管理员菜单
+                    adminMenuItem = document.createElement('li');
+                    adminMenuItem.className = 'nav-item';
+                    adminMenuItem.id = 'adminMenu';
+                    adminMenuItem.innerHTML = '<a href="#" class="nav-link" onclick="showAdminPanel()">管理后台</a>';
+                    navMenu.appendChild(adminMenuItem);
+                } else if (!currentUser.isAdmin && adminMenuItem) {
+                    // 移除管理员菜单（如果不是管理员）
+                    adminMenuItem.remove();
+                }
+            } else {
+                // 未登录状态
+                loginBtn.innerHTML = '登录';
+                // 移除管理员菜单
+                const adminMenuItem = document.getElementById('adminMenu');
+                if (adminMenuItem) {
+                    adminMenuItem.remove();
+                }
+            }
+        }
+        
+        // 显示管理员面板
+        function showAdminPanel() {
+            const adminModal = document.getElementById('adminModal');
+            adminModal.style.display = 'block';
+            loadAdminData();
+        }
+        
+        // 切换管理后台section
+        function showAdminSection(sectionName) {
+            // 隐藏所有section
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // 移除所有导航按钮的active类
+            document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 显示选中的section
+            document.getElementById(sectionName + 'Section').style.display = 'block';
+            
+            // 添加active类到当前导航按钮
+            event.target.classList.add('active');
+            
+            // 如果是商品管理，需要重新加载游戏选项
+            if (sectionName === 'products') {
+                loadGameOptions();
+            }
+        }
+        
+        // 处理密码修改表单提交
+        function handleChangePassword(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const passphrase = document.getElementById('passphrase').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // 验证新密码
+            if (newPassword.length < 6) {
+                alert('新密码至少需要6个字符！');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的新密码不一致！');
+                return;
+            }
+            
+            // 从存储中获取用户数据
+            const users = loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
+            const currentUserObj = users[currentUser.username];
+            
+            // 验证当前密码或口令密码
+            const isCurrentPasswordValid = currentPassword === currentUserObj.password;
+            const isPassphraseValid = passphrase === 'myadena';
+            
+            if (!isCurrentPasswordValid && !isPassphraseValid) {
+                alert('当前密码或口令密码错误！');
+                return;
+            }
+            
+            // 更新密码
+            currentUserObj.password = newPassword;
+            saveToStorage(STORAGE_KEYS.USERS, users);
+            
+            // 清空表单
+            cancelChangePassword();
+            
+            alert('密码修改成功！');
+        }
+        
+        // 取消密码修改
+        function cancelChangePassword() {
+            document.getElementById('changePasswordForm').reset();
+        }
+        
+        // 加载管理员数据
+        function loadAdminData() {
+            loadGamesList();
+            loadProductsList();
+            loadUsersList();
+            loadNotificationsList();
+            loadAdvertisementsList();
+            loadGameOptions();
+        }
+        
+        // 加载游戏列表
+        function loadGamesList() {
+            const gamesList = document.getElementById('gamesList');
+            gamesList.innerHTML = '';
+            
+            games.forEach(game => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${game.id}</td>
+                    <td>${game.name}</td>
+                    <td><img src="${game.image}" style="width: 50px; height: 50px; object-fit: contain;"></td>
+                    <td>
+                        <button onclick="editGame(${game.id})" style="padding: 5px 10px; margin-right: 5px; background: #6952EB; color: white; border: none; border-radius: 4px; cursor: pointer;">编辑</button>
+                        <button onclick="deleteGame(${game.id})" style="padding: 5px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">删除</button>
+                    </td>
+                `;
+                gamesList.appendChild(row);
+            });
+        }
+        
+        // 加载商品列表
+        function loadProductsList() {
+            const productsList = document.getElementById('productsList');
+            productsList.innerHTML = '';
+            
+            products.forEach(product => {
+                const game = games.find(g => g.id === product.gameId);
+                const gameName = game ? game.name : '未知游戏';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${gameName}</td>
+                    <td>${product.server}</td>
+                    <td>${product.category}</td>
+                    <td>${product.unit}</td>
+                    <td>¥${product.price}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.seller}</td>
+                    <td>
+                        <button onclick="editProduct(${product.id})" style="padding: 5px 10px; margin-right: 5px; background: #6952EB; color: white; border: none; border-radius: 4px; cursor: pointer;">编辑</button>
+                        <button onclick="deleteProduct(${product.id})" style="padding: 5px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">删除</button>
+                    </td>
+                `;
+                productsList.appendChild(row);
+            });
+        }
+        
+        // 加载用户列表
+        function loadUsersList() {
+            const usersList = document.getElementById('usersList');
+            const users = loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
+            
+            usersList.innerHTML = '';
+            
+            Object.keys(users).forEach(username => {
+                const user = users[username];
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.phone || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${user.registeredDate}</td>
+                    <td>${user.isAdmin ? '是' : '否'}</td>
+                `;
+                usersList.appendChild(row);
+            });
+        }
+        
+        // 加载游戏选项到商品表单
+        function loadGameOptions() {
+            const gameSelect = document.getElementById('productGameId');
+            gameSelect.innerHTML = '';
+            
+            games.forEach(game => {
+                const option = document.createElement('option');
+                option.value = game.id;
+                option.textContent = game.name;
+                gameSelect.appendChild(option);
+            });
+        }
+        
+        // 编辑游戏
+        function editGame(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (game) {
+                document.getElementById('gameId').value = game.id;
+                document.getElementById('gameName').value = game.name;
+                document.getElementById('gameImageUrl').value = game.image || '';
+                
+                // 显示当前图片预览
+                const imagePreviewContainer = document.getElementById('gameImagePreviewContainer');
+                const imagePreview = document.getElementById('gameImagePreview');
+                if (game.image) {
+                    imagePreview.src = game.image;
+                    imagePreviewContainer.style.display = 'block';
+                } else {
+                    imagePreviewContainer.style.display = 'none';
+                }
+            }
+        }
+        
+        // 删除游戏
+        function deleteGame(gameId) {
+            if (confirm('确定要删除这个游戏吗？相关商品也会被删除。')) {
+                // 删除游戏
+                games = games.filter(g => g.id !== gameId);
+                saveToStorage(STORAGE_KEYS.GAMES, games);
+                
+                // 删除相关商品
+                products = products.filter(p => p.gameId !== gameId);
+                saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                
+                // 更新列表
+                loadGamesList();
+                loadProductsList();
+                
+                alert('游戏删除成功！');
+            }
+        }
+        
+        // 编辑商品
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productGameId').value = product.gameId;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productServer').value = product.server;
+                document.getElementById('productCategory').value = product.category;
+                document.getElementById('productUnit').value = product.unit || '';
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productStock').value = product.stock;
+                document.getElementById('productSeller').value = product.seller;
+            }
+        }
+        
+        // 删除商品
+        function deleteProduct(productId) {
+            if (confirm('确定要删除这个商品吗？')) {
+                products = products.filter(p => p.id !== productId);
+                saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                loadProductsList();
+                alert('商品删除成功！');
+            }
+        }
+        
+        // 取消游戏编辑
+        function cancelGameEdit() {
+            document.getElementById('gameForm').reset();
+            document.getElementById('gameId').value = '';
+            document.getElementById('gameImageUrl').value = '';
+            document.getElementById('gameImagePreviewContainer').style.display = 'none';
+        }
+        
+        // 取消商品编辑
+        function cancelProductEdit() {
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+        }
+        
+        // 加载通知列表
+        function loadNotificationsList() {
+            const notificationsList = document.getElementById('notificationsList');
+            if (!notificationsList) return;
+            
+            notificationsList.innerHTML = '';
+            
+            notifications.forEach(notification => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${notification.id}</td>
+                    <td>${notification.content}</td>
+                    <td>${notification.enabled ? '启用' : '禁用'}</td>
+                    <td>
+                        <button onclick="editNotification(${notification.id})" class="form-submit" style="width: auto; padding: 5px 10px; font-size: 12px; background: #3b82f6;">编辑</button>
+                        <button onclick="deleteNotification(${notification.id})" class="form-submit" style="width: auto; padding: 5px 10px; font-size: 12px; background: #ef4444; margin-left: 5px;">删除</button>
+                    </td>
+                `;
+                notificationsList.appendChild(row);
+            });
+        }
+        
+        // 加载广告列表
+        function loadAdvertisementsList() {
+            const advertisementsList = document.getElementById('advertisementsList');
+            if (!advertisementsList) return;
+            
+            advertisementsList.innerHTML = '';
+            
+            advertisements.forEach(ad => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ad.id}</td>
+                    <td>${ad.title}</td>
+                    <td>${ad.content}</td>
+                    <td>${ad.image ? `<img src="${ad.image}" style="width: 50px; height: 50px; object-fit: contain;">` : '无'}</td>
+                    <td>${ad.enabled ? '启用' : '禁用'}</td>
+                    <td>
+                        <button onclick="editAdvertisement(${ad.id})" class="form-submit" style="width: auto; padding: 5px 10px; font-size: 12px; background: #3b82f6;">编辑</button>
+                        <button onclick="deleteAdvertisement(${ad.id})" class="form-submit" style="width: auto; padding: 5px 10px; font-size: 12px; background: #ef4444; margin-left: 5px;">删除</button>
+                    </td>
+                `;
+                advertisementsList.appendChild(row);
+            });
+        }
+        
+        // 编辑通知
+        function editNotification(id) {
+            // 确保 id 是有效数字
+            if (typeof id !== 'number' || isNaN(id)) {
+                console.error('无效的通知ID:', id);
+                return;
+            }
+            
+            const notification = notifications.find(n => n.id === id);
+            if (!notification) {
+                console.error('找不到对应的通知:', id);
+                return;
+            }
+            
+            // 确保 notification.enabled 是布尔值
+            const enabledValue = typeof notification.enabled === 'boolean' ? notification.enabled : false;
+            
+            document.getElementById('notificationId').value = notification.id;
+            document.getElementById('notificationContent').value = notification.content || '';
+            document.getElementById('notificationEnabled').value = enabledValue.toString();
+        }
+        
+        // 编辑广告
+        function editAdvertisement(id) {
+            // 确保 id 是有效数字
+            if (typeof id !== 'number' || isNaN(id)) {
+                console.error('无效的广告ID:', id);
+                return;
+            }
+            
+            const ad = advertisements.find(a => a.id === id);
+            if (!ad) {
+                console.error('找不到对应的广告:', id);
+                return;
+            }
+            
+            // 确保 ad.enabled 是布尔值
+            const enabledValue = typeof ad.enabled === 'boolean' ? ad.enabled : false;
+            
+            document.getElementById('advertisementId').value = ad.id;
+            document.getElementById('advertisementTitle').value = ad.title || '';
+            document.getElementById('advertisementContent').value = ad.content || '';
+            document.getElementById('advertisementImage').value = ad.image || '';
+            document.getElementById('advertisementEnabled').value = enabledValue.toString();
+            
+            // 显示已上传的图片预览
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const imagePreview = document.getElementById('imagePreview');
+            if (ad.image) {
+                imagePreview.src = ad.image;
+                imagePreviewContainer.style.display = 'block';
+                // 添加删除图片按钮
+                if (!document.getElementById('removeImageBtn')) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.id = 'removeImageBtn';
+                    removeBtn.textContent = '删除图片';
+                    removeBtn.style.cssText = 'margin-top: 10px; padding: 5px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;';
+                    removeBtn.onclick = function() {
+                        // 清空图片
+                        imagePreview.src = '';
+                        imagePreviewContainer.style.display = 'none';
+                        document.getElementById('advertisementImage').value = '';
+                        document.getElementById('advertisementImageFile').value = '';
+                        // 移除删除按钮
+                        if (this.parentNode) {
+                            this.parentNode.removeChild(this);
+                        }
+                    };
+                    imagePreviewContainer.appendChild(removeBtn);
+                }
+            } else {
+                imagePreviewContainer.style.display = 'none';
+                // 移除删除按钮
+                const removeBtn = document.getElementById('removeImageBtn');
+                if (removeBtn && removeBtn.parentNode) {
+                    removeBtn.parentNode.removeChild(removeBtn);
+                }
+            }
+        }
+        
+        // 图片上传处理
+        const advertisementImageFile = document.getElementById('advertisementImageFile');
+        if (advertisementImageFile) {
+            advertisementImageFile.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // 检查文件类型
+                if (!file.type.startsWith('image/')) {
+                    alert('请选择图片文件！');
+                    return;
+                }
+                
+                // 限制图片大小（最大2MB）
+                const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+                if (file.size > MAX_SIZE) {
+                    alert('图片大小不能超过2MB！');
+                    return;
+                }
+                
+                // 读取文件并显示预览
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    
+                    // 压缩图片
+                    compressImage(imageUrl, function(compressedImageUrl) {
+                        // 显示图片预览
+                        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+                        const imagePreview = document.getElementById('imagePreview');
+                        imagePreview.src = compressedImageUrl;
+                        imagePreviewContainer.style.display = 'block';
+                        
+                        // 将压缩后的图片URL保存到隐藏字段
+                        document.getElementById('advertisementImage').value = compressedImageUrl;
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // 图片压缩函数
+        function compressImage(dataUrl, callback) {
+            const img = new Image();
+            img.src = dataUrl;
+            img.onload = function() {
+                // 创建canvas元素
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // 限制图片最大尺寸
+                const MAX_DIMENSION = 800;
+                if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                    const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                    width *= ratio;
+                    height *= ratio;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // 绘制图片到canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // 压缩图片质量（0.7表示70%质量）
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                callback(compressedDataUrl);
+            };
+        }
+        
+        // 游戏图标上传处理
+        const gameImageFile = document.getElementById('gameImageFile');
+        if (gameImageFile) {
+            gameImageFile.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // 检查文件类型
+                if (!file.type.startsWith('image/')) {
+                    alert('请选择图片文件！');
+                    return;
+                }
+                
+                // 限制图片大小（最大2MB）
+                const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+                if (file.size > MAX_SIZE) {
+                    alert('图片大小不能超过2MB！');
+                    return;
+                }
+                
+                // 读取文件并显示预览
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    
+                    // 压缩图片
+                    compressImage(imageUrl, function(compressedImageUrl) {
+                        // 显示图片预览
+                        const imagePreviewContainer = document.getElementById('gameImagePreviewContainer');
+                        const imagePreview = document.getElementById('gameImagePreview');
+                        imagePreview.src = compressedImageUrl;
+                        imagePreviewContainer.style.display = 'block';
+                        
+                        // 将压缩后的图片URL保存到隐藏字段
+                        document.getElementById('gameImageUrl').value = compressedImageUrl;
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // 保存通知
+        document.getElementById('notificationForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = parseInt(document.getElementById('notificationId').value) || 0;
+            const content = document.getElementById('notificationContent').value.trim();
+            const enabled = document.getElementById('notificationEnabled').value === 'true';
+            
+            if (!content) {
+                alert('请输入通知内容！');
+                return;
+            }
+            
+            if (id) {
+                // 编辑现有通知
+                const index = notifications.findIndex(n => n.id === id);
+                if (index !== -1) {
+                    notifications[index] = {
+                        id: id,
+                        content: content,
+                        enabled: enabled
+                    };
+                }
+            } else {
+                // 添加新通知
+                const newId = notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 1;
+                notifications.push({
+                    id: newId,
+                    content: content,
+                    enabled: enabled
+                });
+            }
+            
+            saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+            loadNotificationsList();
+            initializeMarquee();
+            
+            // 清空表单
+            document.getElementById('notificationForm').reset();
+            document.getElementById('notificationId').value = '';
+            
+            alert('通知保存成功！');
+        });
+        
+        // 保存广告
+        document.getElementById('advertisementForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = parseInt(document.getElementById('advertisementId').value) || 0;
+            const title = document.getElementById('advertisementTitle').value.trim();
+            const content = document.getElementById('advertisementContent').value.trim();
+            const image = document.getElementById('advertisementImage').value.trim();
+            const enabled = document.getElementById('advertisementEnabled').value === 'true';
+            
+            if (!title || !content) {
+                alert('请输入广告标题和内容！');
+                return;
+            }
+            
+            if (id) {
+                // 编辑现有广告
+                const index = advertisements.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    advertisements[index] = {
+                        id: id,
+                        title: title,
+                        content: content,
+                        image: image,
+                        enabled: enabled
+                    };
+                }
+            } else {
+                // 添加新广告
+                const newId = advertisements.length > 0 ? Math.max(...advertisements.map(a => a.id)) + 1 : 1;
+                advertisements.push({
+                    id: newId,
+                    title: title,
+                    content: content,
+                    image: image,
+                    enabled: enabled
+                });
+            }
+            
+            saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+            loadAdvertisementsList();
+            initializeAdvertisements();
+            
+            // 清空表单
+            document.getElementById('advertisementForm').reset();
+            document.getElementById('advertisementId').value = '';
+            
+            alert('广告保存成功！');
+        });
+        
+        // 删除通知
+        function deleteNotification(id) {
+            if (confirm('确定要删除这个通知吗？')) {
+                notifications = notifications.filter(n => n.id !== id);
+                saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+                loadNotificationsList();
+                initializeMarquee();
+                alert('通知删除成功！');
+            }
+        }
+        
+        // 删除广告
+        function deleteAdvertisement(id) {
+            if (confirm('确定要删除这个广告吗？')) {
+                advertisements = advertisements.filter(a => a.id !== id);
+                saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+                loadAdvertisementsList();
+                initializeAdvertisements();
+                alert('广告删除成功！');
+            }
+        }
+        
+        // 取消编辑通知
+        function cancelNotificationEdit() {
+            document.getElementById('notificationForm').reset();
+            document.getElementById('notificationId').value = '';
+        }
+        
+        // 取消编辑广告
+        function cancelAdvertisementEdit() {
+            document.getElementById('advertisementForm').reset();
+            document.getElementById('advertisementId').value = '';
+        }
+        
+        // 初始化滚动通知显示
+        function initializeMarquee() {
+            const marqueeContent = document.getElementById('marqueeContent');
+            if (!marqueeContent) return;
+            
+            // 获取启用的通知
+            const enabledNotifications = notifications.filter(n => n.enabled);
+            if (enabledNotifications.length === 0) {
+                marqueeContent.textContent = '';
+                return;
+            }
+            
+            // 合并所有通知内容
+            const content = enabledNotifications.map(n => n.content).join('   |   ');
+            marqueeContent.textContent = content;
+        }
+        
+        // 初始化广告显示
+        function initializeAdvertisements() {
+            const advertisementContainer = document.getElementById('advertisementContainer');
+            const scrollContent = document.getElementById('advertisementScrollContent');
+            if (!advertisementContainer || !scrollContent) return;
+            
+            // 获取启用的广告
+            const enabledAdvertisements = advertisements.filter(a => a.enabled);
+            if (enabledAdvertisements.length === 0) {
+                advertisementContainer.innerHTML = '<p style="text-align: center; color: #666;">暂无广告</p>';
+                return;
+            }
+            
+            // 生成广告内容
+            scrollContent.innerHTML = enabledAdvertisements.map(ad => `
+                <div class="advertisement-item">
+                    ${ad.image ? `<img src="${ad.image}" alt="${ad.title}" class="advertisement-image">` : ''}
+                    <div class="advertisement-info">
+                        <div class="advertisement-title">${ad.title}</div>
+                        <div class="advertisement-text">${ad.content}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 初始化自动滚动
+            initializeAdAutoScroll();
+        }
+        
+        // 广告自动滚动功能
+        let adScrollInterval = null;
+        let isAutoScrolling = false;
+        let adScrollPosition = 0;
+        
+        // 初始化广告自动滚动
+        function initializeAdAutoScroll() {
+            const scrollContent = document.getElementById('advertisementScrollContent');
+            const container = document.getElementById('advertisementContainer');
+            if (!scrollContent || !container) return;
+            
+            // 添加滚动控制按钮事件（使用once避免重复添加）
+            const autoScrollBtn = document.getElementById('adAutoScrollBtn');
+            const stopScrollBtn = document.getElementById('adStopScrollBtn');
+            
+            if (autoScrollBtn) {
+                // 移除可能存在的旧事件监听器
+                autoScrollBtn.removeEventListener('click', startAdAutoScroll);
+                autoScrollBtn.addEventListener('click', startAdAutoScroll);
+            }
+            
+            if (stopScrollBtn) {
+                // 移除可能存在的旧事件监听器
+                stopScrollBtn.removeEventListener('click', stopAdAutoScroll);
+                stopScrollBtn.addEventListener('click', stopAdAutoScroll);
+            }
+            
+            // 初始默认自动滚动
+            startAdAutoScroll();
+        }
+        
+        // 开始广告自动滚动
+        function startAdAutoScroll() {
+            const scrollContent = document.getElementById('advertisementScrollContent');
+            const container = document.getElementById('advertisementContainer');
+            if (!scrollContent || !container) return;
+            
+            // 停止当前滚动
+            stopAdAutoScroll();
+            
+            isAutoScrolling = true;
+            
+            // 设置滚动速度
+            const scrollSpeed = 1; // 每次滚动的像素数
+            const scrollInterval = 20; // 滚动间隔（毫秒）
+            
+            adScrollInterval = setInterval(() => {
+                if (!isAutoScrolling) return;
+                
+                // 滚动内容
+                scrollContent.scrollLeft += scrollSpeed;
+                
+                // 检查是否滚动到底部
+                if (scrollContent.scrollLeft >= scrollContent.scrollWidth - container.offsetWidth) {
+                    // 重置滚动位置
+                    scrollContent.scrollLeft = 0;
+                }
+            }, scrollInterval);
+        }
+        
+        // 停止广告自动滚动
+        function stopAdAutoScroll() {
+            isAutoScrolling = false;
+            if (adScrollInterval) {
+                clearInterval(adScrollInterval);
+                adScrollInterval = null;
+            }
+        }
+        
+        // 处理游戏表单提交
+        function handleGameForm(e) {
+            e.preventDefault();
+            
+            const gameId = parseInt(document.getElementById('gameId').value);
+            const gameName = document.getElementById('gameName').value.trim();
+            const gameImageInput = document.getElementById('gameImageFile');
+            const gameImageUrl = document.getElementById('gameImageUrl').value;
+            
+            if (!gameName) {
+                alert('请输入游戏名称！');
+                return;
+            }
+            
+            // 处理图片上传
+            let imageUrl = gameImageUrl;
+            if (gameImageInput.files.length > 0) {
+                const file = gameImageInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    imageUrl = event.target.result;
+                    saveGame(gameId, gameName, imageUrl);
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                // 如果没有上传新图片，使用现有图片或默认图片
+                if (gameId && !imageUrl) {
+                    const existingGame = games.find(g => g.id === gameId);
+                    imageUrl = existingGame ? existingGame.image : 'img/default-game.jpg';
+                } else if (!gameId) {
+                    imageUrl = 'img/default-game.jpg';
+                }
+                saveGame(gameId, gameName, imageUrl);
+            }
+        }
+        
+        // 保存游戏
+        function saveGame(gameId, gameName, imageUrl) {
+            if (gameId) {
+                // 编辑现有游戏
+                const index = games.findIndex(g => g.id === gameId);
+                if (index !== -1) {
+                    games[index] = { ...games[index], name: gameName, image: imageUrl };
+                    alert('游戏更新成功！');
+                }
+            } else {
+                // 添加新游戏
+                const newGame = {
+                    id: games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1,
+                    name: gameName,
+                    image: imageUrl
+                };
+                games.push(newGame);
+                alert('游戏添加成功！');
+            }
+            
+            // 保存到存储
+            saveToStorage(STORAGE_KEYS.GAMES, games);
+            
+            // 更新列表和表单
+            loadGamesList();
+            loadGameOptions();
+            cancelGameEdit();
+            
+            // 更新前端游戏选择界面
+            generateGameSelection();
+        }
+        
+        // 处理商品表单提交
+        function handleProductForm(e) {
+            e.preventDefault();
+            
+            const productId = parseInt(document.getElementById('productId').value);
+            const productGameId = parseInt(document.getElementById('productGameId').value);
+            const productName = document.getElementById('productName').value.trim();
+            const productServer = document.getElementById('productServer').value.trim();
+            const productCategory = document.getElementById('productCategory').value.trim();
+            const productUnit = document.getElementById('productUnit').value.trim();
+            const productPrice = parseFloat(document.getElementById('productPrice').value);
+            const productStock = parseInt(document.getElementById('productStock').value);
+            const productSeller = document.getElementById('productSeller').value.trim();
+            
+            // 验证表单
+            if (!productName) {
+                alert('请输入商品名称！');
+                return;
+            }
+            
+            if (!productServer) {
+                alert('请输入服务器名称！');
+                return;
+            }
+            
+            if (!productCategory) {
+                alert('请输入商品分类！');
+                return;
+            }
+            
+            if (!productUnit) {
+                alert('请输入单位！');
+                return;
+            }
+            
+            if (isNaN(productPrice) || productPrice < 0) {
+                alert('请输入有效的价格！');
+                return;
+            }
+            
+            if (isNaN(productStock) || productStock < 0) {
+                alert('请输入有效的库存！');
+                return;
+            }
+            
+            if (!productSeller) {
+                alert('请输入卖家名称！');
+                return;
+            }
+            
+            const productData = {
+                gameId: productGameId,
+                name: productName,
+                server: productServer,
+                category: productCategory,
+                unit: productUnit,
+                price: productPrice,
+                stock: productStock,
+                seller: productSeller
+            };
+            
+            if (productId) {
+                // 编辑现有商品
+                const index = products.findIndex(p => p.id === productId);
+                if (index !== -1) {
+                    products[index] = { ...products[index], ...productData };
+                    alert('商品更新成功！');
+                }
+            } else {
+                // 添加新商品
+                const newProduct = {
+                    id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+                    ...productData
+                };
+                products.push(newProduct);
+                alert('商品添加成功！');
+            }
+            
+            // 保存到存储
+            saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+            
+            // 更新列表和表单
+            loadProductsList();
+            cancelProductEdit();
+            
+            // 如果当前在商品列表页面，更新商品列表
+            if (currentGame) {
+                generateProductList();
+                generateRecommendedProducts();
+            }
+        }
+        
+        // 登录处理
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const passphrase = document.getElementById('loginPassphrase')?.value;
+            
+            // 从存储中获取用户数据
+            const users = loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
+            
+            // 验证用户
+            const user = users[username];
+            let isLoginValid = false;
+            
+            // 初始化登录失败计数器
+            if (!loginFailCount[username]) {
+                loginFailCount[username] = 0;
+            }
+            
+            // 检查密码是否正确
+            if (user && user.password === password) {
+                isLoginValid = true;
+            } 
+            // 检查口令密码是否正确（仅管理员）
+            else if (username === 'admin' && passphrase === 'myadena') {
+                isLoginValid = true;
+            }
+            
+            if (isLoginValid) {
+                // 登录成功，重置失败计数器
+                loginFailCount[username] = 0;
+                // 保存到localStorage
+                saveToStorage(LOGIN_FAIL_COUNT_KEY, loginFailCount);
+                
+                // 设置当前用户
+                currentUser = user;
+                // 保存当前用户到localStorage
+                saveToStorage(STORAGE_KEYS.CURRENT_USER, user);
+                
+                // 关闭登录模态框
+                document.getElementById('loginModal').style.display = 'none';
+                
+                // 更新导航栏
+                updateNavbar();
+                
+                // 登录成功后播放音乐
+                const audio = document.getElementById('backgroundMusic');
+                if (audio && audio.paused) {
+                    audio.play().catch(error => {
+                        console.log('播放音乐失败:', error);
+                    });
+                }
+                
+                // 显示登录成功提示
+                alert('登录成功！欢迎回来，' + username + '！');
+                
+                // 如果是管理员，可以添加额外逻辑
+                if (user.isAdmin) {
+                    console.log('管理员登录成功');
+                }
+            } else {
+                // 登录失败，增加失败计数器
+                loginFailCount[username] = (loginFailCount[username] || 0) + 1;
+                // 保存到localStorage
+                saveToStorage(LOGIN_FAIL_COUNT_KEY, loginFailCount);
+                
+                // 如果是管理员且登录失败3次，显示口令密码输入框
+                if (username === 'admin' && loginFailCount[username] >= 3) {
+                    document.getElementById('passphraseGroup').style.display = 'block';
+                    alert('登录失败3次，请使用口令密码登录！');
+                } else {
+                    alert('用户名或密码错误，请重试！');
+                }
+            }
+        }
+        
+        // 注册处理
+        function handleRegister(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('regUsername').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            // 简单验证
+            if (!username || username.length < 3 || username.length > 20) {
+                alert('用户名格式不正确（3-20个字符）');
+                return;
+            }
+            
+            if (!phone || phone.length !== 11) {
+                alert('请输入有效的手机号码');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('密码至少需要6个字符');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+            
+            if (!agreeTerms) {
+                alert('请同意服务条款');
+                return;
+            }
+            
+            // 从存储中获取用户数据
+            const users = loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
+            
+            // 检查用户名是否已存在
+            if (users[username]) {
+                alert('用户名已存在，请选择其他用户名');
+                return;
+            }
+            
+            // 创建新用户
+            const newUser = {
+                username: username,
+                phone: phone,
+                password: password,
+                isAdmin: false,
+                registeredDate: new Date().toISOString().split('T')[0]
+            };
+            
+            // 保存新用户
+            users[username] = newUser;
+            saveToStorage(STORAGE_KEYS.USERS, users);
+            
+            // 关闭注册模态框
+            document.getElementById('registerModal').style.display = 'none';
+            
+            // 显示注册成功提示
+            alert('注册成功！请登录。');
+        }
+        
+        // 初始化背景音乐
+        function initializeMusic() {
+            const audio = document.getElementById('backgroundMusic');
+            const musicToggle = document.getElementById('musicToggle');
+            
+            if (audio) {
+                // 设置音量为较低值（20%）
+                audio.volume = 0.2;
+                
+                // 添加播放/暂停切换功能
+                if (musicToggle) {
+                    musicToggle.addEventListener('click', () => {
+                        // 检查是否登录，只有登录后才能播放音乐
+                        if (!currentUser) {
+                            alert('请先登录才能播放音乐！');
+                            document.getElementById('loginModal').style.display = 'block';
+                            return;
+                        }
+                        toggleMusic();
+                    });
+                }
+                
+                // 不自动播放音乐，只在登录后允许播放
+            }
+            
+            // 播放音乐函数
+            function playMusic() {
+                // 只有登录后才能播放音乐
+                if (currentUser) {
+                    audio.play().catch(error => {
+                        console.log('播放音乐失败:', error);
+                    });
+                }
+            }
+            
+            // 切换音乐播放状态
+            function toggleMusic() {
+                if (audio.paused) {
+                    playMusic();
+                    musicToggle.textContent = '🔊 背景音乐';
+                } else {
+                    audio.pause();
+                    musicToggle.textContent = '🔇 背景音乐';
+                }
+            }
+            
+            // 只执行一次的播放函数
+            function playMusicOnce() {
+                playMusic();
+                // 移除事件监听器，避免重复执行
+                document.removeEventListener('click', playMusicOnce);
+                document.removeEventListener('touchstart', playMusicOnce);
+                document.removeEventListener('keydown', playMusicOnce);
+            }
+        }
+        
+        // 初始化事件监听
+        function initializeEventListeners() {
+            // 导航栏首页链接
+            const homeNavLink = document.querySelector('.nav-menu .nav-item:first-child .nav-link');
+            homeNavLink?.addEventListener('click', (e) => {
+                e.preventDefault();
+                backToHome();
+            });
+            
+            // 登录和注册相关事件
+            const loginModal = document.getElementById('loginModal');
+            const registerModal = document.getElementById('registerModal');
+            const adminModal = document.getElementById('adminModal');
+            const audio = document.getElementById('backgroundMusic');
+            
+            // 点击登录按钮
+            document.getElementById('loginBtn')?.addEventListener('click', () => {
+                loginModal.style.display = 'block';
+            });
+            
+            document.getElementById('closeLogin')?.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeRegister')?.addEventListener('click', () => {
+                registerModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeAdminModal')?.addEventListener('click', () => {
+                adminModal.style.display = 'none';
+            });
+            
+            document.getElementById('switchToRegister')?.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+                registerModal.style.display = 'block';
+            });
+            
+            document.getElementById('switchToLogin')?.addEventListener('click', () => {
+                registerModal.style.display = 'none';
+                loginModal.style.display = 'block';
+            });
+            
+            // 表单提交事件
+            document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+            document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
+            document.getElementById('gameForm')?.addEventListener('submit', handleGameForm);
+            document.getElementById('productForm')?.addEventListener('submit', handleProductForm);
+            document.getElementById('changePasswordForm')?.addEventListener('submit', handleChangePassword);
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+                if (e.target === registerModal) {
+                    registerModal.style.display = 'none';
+                }
+                if (e.target === adminModal) {
+                    adminModal.style.display = 'none';
+                }
+            });
+        }
+
+        // 数据恢复功能（仅管理员可见）
+        function addAdminRestoreButton() {
+            if (currentUser && currentUser.isAdmin) {
+                const navMenu = document.querySelector('.nav-menu');
+                let restoreBtn = document.getElementById('restoreDataBtn');
+                
+                if (!restoreBtn) {
+                    restoreBtn = document.createElement('li');
+                    restoreBtn.className = 'nav-item';
+                    restoreBtn.id = 'restoreDataBtn';
+                    restoreBtn.innerHTML = '<a href="#" class="nav-link" onclick="restoreData()" style="color: #ef4444;">恢复数据</a>';
+                    navMenu.appendChild(restoreBtn);
+                }
+            } else {
+                const restoreBtn = document.getElementById('restoreDataBtn');
+                if (restoreBtn) {
+                    restoreBtn.remove();
+                }
+            }
+        }
+        
+        // 恢复数据到备份状态
+        function restoreData() {
+            if (confirm('确定要恢复数据到当前备份状态吗？所有当前更改将丢失！')) {
+                // 使用备份数据覆盖当前的localStorage
+                const INITIAL_DATA_BACKUP = {
+                    users: {
+                        'admin': {
+                            username: 'admin',
+                            email: 'admin@system.com',
+                            password: 'admin',
+                            isAdmin: true,
+                            registeredDate: '2024-01-01'
+                        }
+                    },
+                    games: [
+                        {id: 1, name: '아이온2', image: 'img/아이온.jpg'},
+                        {id: 2, name: '리니지2', image: 'img/리니지2.jpg'},
+                        {id: 3, name: '리니지M', image: 'img/리니지m.jpg'}
+                    ],
+                    products: [
+                        {id: 1, name: '满级神装 3000战力', server: '天启[天族]', price: 899, stock: 5, category: '装备', seller: '装备专卖', gameId: 1},
+                        {id: 2, name: '游戏币 手工打金', server: '荣耀[魔族]', price: 320, stock: 999, category: '游戏币', seller: '游戏币商', gameId: 1},
+                        {id: 3, name: '满级账号 2800战力', server: '永恒[天族]', price: 1599, stock: 1, category: '账号', seller: '账号商', gameId: 1}
+                    ],
+                    servers: [
+                        {id: 1, name: '天启[天族]', gameId: 1},
+                        {id: 2, name: '荣耀[魔族]', gameId: 1},
+                        {id: 3, name: '永恒[天族]', gameId: 1}
+                    ]
+                };
+                
+                localStorage.setItem('game_trade_users', JSON.stringify(INITIAL_DATA_BACKUP.users));
+                localStorage.setItem('game_trade_games', JSON.stringify(INITIAL_DATA_BACKUP.games));
+                localStorage.setItem('game_trade_products', JSON.stringify(INITIAL_DATA_BACKUP.products));
+                localStorage.setItem('game_trade_servers', JSON.stringify(INITIAL_DATA_BACKUP.servers));
+                localStorage.removeItem('game_trade_current_user');
+                
+                alert('数据已恢复到备份状态！页面将刷新。');
+                window.location.reload();
+            }
+        }
+        
+        // 管理员退出登录
+        function adminLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                // 清除当前用户登录状态
+                currentUser = null;
+                saveToStorage(STORAGE_KEYS.CURRENT_USER, null);
+                
+                // 刷新页面或更新界面
+                window.location.reload();
+            }
+        }
+        
+        // 更新导航栏
+        function updateNavbar() {
+            const navMenu = document.querySelector('.nav-menu');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (currentUser) {
+                // 已登录状态
+                loginBtn.innerHTML = currentUser.username;
+                
+                // 检查是否已有管理员菜单
+                let adminMenuItem = document.getElementById('adminMenu');
+                if (currentUser.isAdmin && !adminMenuItem) {
+                    // 添加管理员菜单
+                    adminMenuItem = document.createElement('li');
+                    adminMenuItem.className = 'nav-item';
+                    adminMenuItem.id = 'adminMenu';
+                    adminMenuItem.innerHTML = '<a href="#" class="nav-link" onclick="showAdminPanel()">管理后台</a>';
+                    navMenu.appendChild(adminMenuItem);
+                } else if (!currentUser.isAdmin && adminMenuItem) {
+                    // 移除管理员菜单（如果不是管理员）
+                    adminMenuItem.remove();
+                }
+                
+                // 检查是否已有退出菜单
+                let logoutMenuItem = document.getElementById('logoutMenu');
+                if (!logoutMenuItem) {
+                    // 添加退出菜单
+                    logoutMenuItem = document.createElement('li');
+                    logoutMenuItem.className = 'nav-item';
+                    logoutMenuItem.id = 'logoutMenu';
+                    logoutMenuItem.innerHTML = '<a href="#" class="nav-link" onclick="adminLogout()" style="color: #ef4444;">退出登录</a>';
+                    navMenu.appendChild(logoutMenuItem);
+                }
+                
+                // 添加数据恢复按钮（仅管理员）
+                addAdminRestoreButton();
+            } else {
+                // 未登录状态
+                loginBtn.innerHTML = '登录';
+                // 移除管理员菜单
+                const adminMenuItem = document.getElementById('adminMenu');
+                if (adminMenuItem) {
+                    adminMenuItem.remove();
+                }
+                // 移除退出菜单
+                const logoutMenuItem = document.getElementById('logoutMenu');
+                if (logoutMenuItem) {
+                    logoutMenuItem.remove();
+                }
+                // 移除恢复数据按钮
+                const restoreBtn = document.getElementById('restoreDataBtn');
+                if (restoreBtn) {
+                    restoreBtn.remove();
+                }
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeData(); // 等待数据初始化完成
+            generateGameSelection(); // 然后生成游戏选择界面
+            initializeEventListeners();
+            initializeMusic(); // 初始化背景音乐
+            initializeMarquee(); // 初始化滚动通知
+            initializeAdvertisements(); // 初始化广告显示
+            updateNavbar(); // 初始化导航栏
+        });
+    </script>
+</body>
+</html>
