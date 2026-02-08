@@ -971,11 +971,11 @@
             <!-- 管理后台导航 -->
             <div class="admin-nav" style="margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
                 <button class="admin-nav-btn active" onclick="showAdminSection('games')">游戏管理</button>
+                <button class="admin-nav-btn" onclick="showAdminSection('servers')">服务器管理</button>
                 <button class="admin-nav-btn" onclick="showAdminSection('products')">商品管理</button>
                 <button class="admin-nav-btn" onclick="showAdminSection('users')">用户管理</button>
                 <button class="admin-nav-btn" onclick="showAdminSection('notifications')">滚动通知管理</button>
                 <button class="admin-nav-btn" onclick="showAdminSection('advertisements')">广告管理</button>
-                <button class="admin-nav-btn" onclick="showAdminSection('data')">数据管理</button>
                 <button class="admin-nav-btn" onclick="showAdminSection('profile')">个人设置</button>
             </div>
             
@@ -1022,6 +1022,45 @@
                         <tbody id="gamesList">
                             <!-- 动态生成游戏列表 -->
                         </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 服务器管理 -->
+            <div id="serversSection" class="admin-section" style="display: none;">
+                <h3>服务器管理</h3>
+                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <h4>添加/编辑服务器</h4>
+                    <form id="serverForm">
+                        <input type="hidden" id="serverId">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label>所属游戏：</label>
+                                <select id="serverGameId" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;"></select>
+                            </div>
+                            <div>
+                                <label>服务器名称：</label>
+                                <input type="text" id="serverName" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="form-submit" style="width: auto; padding: 8px 16px;">保存服务器</button>
+                            <button type="button" class="form-submit" style="width: auto; padding: 8px 16px; background: #6b7280;" onclick="cancelServerEdit()">取消</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="admin-list">
+                    <h4>服务器列表</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">服务器名称</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">所属游戏</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serversList"></tbody>
                     </table>
                 </div>
             </div>
@@ -1229,17 +1268,7 @@
                 </div>
             </div>
             
-            <!-- 数据管理 -->
-            <div id="dataSection" class="admin-section" style="display: none;">
-                <h3>数据管理</h3>
-                <div class="admin-form" style="margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px;">
-                    <h4>数据导出</h4>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <p style="margin: 0;">将当前所有数据导出为JSON文件：</p>
-                        <button type="button" class="form-submit" style="padding: 10px 20px; background: #6952EB;" onclick="exportData()">导出数据</button>
-                    </div>
-                </div>
-            </div>
+            
             
             <!-- 个人设置 -->
             <div id="profileSection" class="admin-section" style="display: none;">
@@ -1285,11 +1314,15 @@
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display:block;margin-bottom:6px;">存储桶名称</label>
-                                <input type="text" id="supabaseBucketInput" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:4px;" placeholder="game-icons">
+                                <input type="text" id="supabaseBucketInput" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:4px;" placeholder="best">
                             </div>
                             <div style="display:flex;gap:10px;">
                                 <button type="submit" class="form-submit" style="width:auto;padding:10px 20px;background:#6952EB;">保存配置</button>
+                                <button type="button" id="testSupabaseBtn" class="form-submit" style="width:auto;padding:10px 20px;background:#10b981;">测试连接</button>
+                                <button type="button" id="resetSupabaseBtn" class="form-submit" style="width:auto;padding:10px 20px;background:#ef4444;">清空配置</button>
                             </div>
+                            <div id="supabaseEffectiveInfo" style="margin-top:10px;color:#555;font-size:13px;"></div>
+                            <div id="autoBackupStatus" style="margin-top:6px;color:#555;font-size:13px;"></div>
                         </div>
                     </form>
                 </div>
@@ -1322,13 +1355,85 @@
         let supabase = null;
         let SUPABASE_URL = localStorage.getItem('supabase_url') || '';
         let SUPABASE_ANON_KEY = localStorage.getItem('supabase_anon_key') || '';
-        let SUPABASE_BUCKET = localStorage.getItem('supabase_bucket') || 'game-icons';
+        let SUPABASE_BUCKET = localStorage.getItem('supabase_bucket') || 'best';
+        function normalizeSupabaseUrl(u) {
+            try {
+                const parsed = new URL(u);
+                return `${parsed.protocol}//${parsed.host}`;
+            } catch {
+                const s = (u || '').trim();
+                const idx = s.indexOf('.supabase.co');
+                if (idx !== -1) {
+                    const end = idx + '.supabase.co'.length;
+                    return s.slice(0, end);
+                }
+                return s;
+            }
+        }
+        function isLikelyJwt(k) {
+            return typeof k === 'string' && k.startsWith('ey');
+        }
+        function isPublishableLike(k) {
+            return typeof k === 'string' && /^sb_publishable_/i.test(k);
+        }
+        function validateSupabaseKey(k) {
+            if (isPublishableLike(k)) return { ok: false, reason: 'publishable' };
+            if (!isLikelyJwt(k)) return { ok: false, reason: 'format' };
+            return { ok: true };
+        }
+        function getParamFromString(str, key) {
+            try {
+                const pairs = str.split(/[&?]/).filter(Boolean);
+                for (const p of pairs) {
+                    const [k, v] = p.split('=');
+                    if (decodeURIComponent(k) === key) return decodeURIComponent(v || '');
+                }
+            } catch {}
+            return '';
+        }
+        function parseConfigFromUrl() {
+            const h = (location.hash || '').replace(/^#/, '');
+            const s = (location.search || '').replace(/^\?/, '');
+            const url = getParamFromString(h, 'supabase_url') || getParamFromString(s, 'supabase_url');
+            const key = getParamFromString(h, 'supabase_key') || getParamFromString(s, 'supabase_key');
+            const bucket = getParamFromString(h, 'supabase_bucket') || getParamFromString(s, 'supabase_bucket');
+            return { url, key, bucket };
+        }
+        function applyExternalSupabaseConfig(cfg) {
+            const url = normalizeSupabaseUrl(cfg.url || '');
+            const key = (cfg.key || '').trim();
+            const bucket = (cfg.bucket || '').trim();
+            if (url && key) {
+                const v = validateSupabaseKey(key);
+                if (!v.ok) return false;
+                localStorage.setItem('supabase_url', url);
+                localStorage.setItem('supabase_anon_key', key);
+                if (bucket) localStorage.setItem('supabase_bucket', bucket);
+                initializeSupabaseClient();
+                return !!supabase;
+            }
+            return false;
+        }
+        (function autoConfigureSupabase() {
+            const cfg = parseConfigFromUrl();
+            if (cfg.url && cfg.key) {
+                applyExternalSupabaseConfig(cfg);
+            }
+        })();
         function initializeSupabaseClient() {
             supabase = null;
-            SUPABASE_URL = localStorage.getItem('supabase_url') || '';
+            SUPABASE_URL = normalizeSupabaseUrl(localStorage.getItem('supabase_url') || '');
             SUPABASE_ANON_KEY = localStorage.getItem('supabase_anon_key') || '';
-            SUPABASE_BUCKET = localStorage.getItem('supabase_bucket') || 'game-icons';
+            SUPABASE_BUCKET = localStorage.getItem('supabase_bucket') || 'best';
+            if (SUPABASE_URL) {
+                localStorage.setItem('supabase_url', SUPABASE_URL);
+            }
             if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                const v = validateSupabaseKey(SUPABASE_ANON_KEY);
+                if (!v.ok) {
+                    supabase = null;
+                    return;
+                }
                 try {
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 } catch (e) {
@@ -1348,6 +1453,7 @@
             SERVERS: 'game_trade_servers',
             GAMES: 'game_trade_games'
         };
+        const SYNC_QUEUE_KEY = 'supabase_sync_queue';
 
         // 当前选择的游戏
         let currentGame = null;
@@ -1357,6 +1463,7 @@
         let servers = [];
         let notifications = [];
         let advertisements = [];
+        let autoBackupTimer = null;
         function dataURLToBlob(dataUrl) {
             const arr = dataUrl.split(',');
             const mime = arr[0].match(/:(.*?);/)[1];
@@ -1376,6 +1483,79 @@
             if (error) return null;
             const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
             return data.publicUrl || null;
+        }
+        async function uploadAdImageToSupabase(dataUrl, nameHint) {
+            if (!supabase || !SUPABASE_BUCKET) return null;
+            const blob = dataURLToBlob(dataUrl);
+            const ext = blob.type.includes('png') ? 'png' : 'jpg';
+            const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}_${nameHint || 'ad'}.${ext}`;
+            const path = `ads/${fileName}`;
+            const { error } = await supabase.storage.from(SUPABASE_BUCKET).upload(path, blob, { contentType: blob.type, upsert: true });
+            if (error) return null;
+            const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+            return data.publicUrl || null;
+        }
+        function toDbProducts(arr) {
+            return (arr || []).map(p => ({
+                id: p.id,
+                name: p.name,
+                server: p.server,
+                category: p.category,
+                unit: p.unit,
+                price: p.price,
+                stock: p.stock,
+                seller: p.seller,
+                gameid: p.gameId
+            }));
+        }
+        function fromDbProducts(arr) {
+            return (arr || []).map(p => ({
+                id: p.id,
+                name: p.name,
+                server: p.server,
+                category: p.category,
+                unit: p.unit,
+                price: p.price,
+                stock: p.stock,
+                seller: p.seller,
+                gameId: p.gameid
+            }));
+        }
+        function toDbServers(arr) {
+            return (arr || []).map(s => ({
+                id: s.id,
+                name: s.name,
+                gameid: s.gameId
+            }));
+        }
+        function fromDbServers(arr) {
+            return (arr || []).map(s => ({
+                id: s.id,
+                name: s.name,
+                gameId: s.gameid
+            }));
+        }
+        function toDbUsers(arr) {
+            return (arr || []).map(u => ({
+                username: u.username,
+                email: u.email || null,
+                password: u.password,
+                isadmin: !!u.isAdmin,
+                registereddate: u.registeredDate || null
+            }));
+        }
+        function fromDbUsers(arr) {
+            const obj = {};
+            (arr || []).forEach(u => {
+                obj[u.username] = {
+                    username: u.username,
+                    email: u.email || null,
+                    password: u.password,
+                    isAdmin: !!u.isadmin,
+                    registeredDate: u.registereddate || null
+                };
+            });
+            return obj;
         }
         
         // 登录失败计数器，存储在localStorage中
@@ -1421,38 +1601,32 @@
         // 从Supabase或localStorage加载数据
         async function loadFromStorage(key, defaultValue) {
             try {
-                // 首先检查Supabase客户端是否已初始化
-                if (supabase) {
-                    // 尝试从Supabase加载数据
-                    const tableName = key.replace('game_trade_', '');
-                    const { data, error } = await supabase
-                        .from(tableName)
-                        .select('*');
+                const tableName = key.replace('game_trade_', '');
+                const ALLOWED_TABLES = ['users','games','products','servers','notifications','advertisements'];
+                // 首先检查Supabase客户端是否已初始化且表名允许
+                if (supabase && ALLOWED_TABLES.includes(tableName)) {
+                    const { data, error } = await supabase.from(tableName).select('*');
                     
                     if (error) {
-                        // Supabase加载失败，尝试从localStorage加载
                         const item = localStorage.getItem(key);
                         return item ? JSON.parse(item) : defaultValue;
                     }
                     
                     // 处理不同数据类型的返回格式
                     if (tableName === 'users') {
-                        // 将用户数组转换为对象格式（username为键）
-                        const usersObj = {};
-                        data.forEach(user => {
-                            usersObj[user.username] = user;
-                        });
-                        return usersObj;
+                        return fromDbUsers(data);
+                    } else if (tableName === 'products') {
+                        return fromDbProducts(data);
+                    } else if (tableName === 'servers') {
+                        return fromDbServers(data);
                     }
                     
                     return data;
                 } else {
-                    // Supabase客户端未初始化，直接从localStorage加载
                     const item = localStorage.getItem(key);
                     return item ? JSON.parse(item) : defaultValue;
                 }
             } catch (error) {
-                // 所有加载方式都失败，返回默认值
                 return defaultValue;
             }
         }
@@ -1460,111 +1634,274 @@
         // 保存数据到Supabase和localStorage
         async function saveToStorage(key, data) {
             try {
-                // 保存到localStorage作为基础存储
                 localStorage.setItem(key, JSON.stringify(data));
                 
-                // 只有当Supabase客户端已初始化时，才尝试保存到Supabase
-                if (supabase) {
-                    // 保存到Supabase
-                    const tableName = key.replace('game_trade_', '');
+                const tableName = key.replace('game_trade_', '');
+                const ALLOWED_TABLES = ['users','games','products','servers','notifications','advertisements'];
+                // 只有当Supabase客户端已初始化且表名在白名单中时，才尝试保存到Supabase
+                if (supabase && ALLOWED_TABLES.includes(tableName)) {
                     
                     if (tableName === 'users') {
-                        // 处理用户数据，将对象转换为数组
-                        const usersArray = Object.values(data);
-                        
-                        // 删除现有数据
-                        const { error: deleteError } = await supabase
+                        const usersArray = Object.values(data || {});
+                        const rows = toDbUsers(usersArray);
+                        const { error: upsertError } = await supabase
                             .from(tableName)
-                            .delete();
-                        
-                        if (deleteError) {
-                            console.error('删除Supabase用户数据失败:', deleteError);
-                            return false;
-                        }
-                        
-                        // 插入新数据
-                        const { error: insertError } = await supabase
-                            .from(tableName)
-                            .insert(usersArray);
-                        
-                        if (insertError) {
-                            console.error('保存Supabase用户数据失败:', insertError);
+                            .upsert(rows, { onConflict: 'username' });
+                        if (upsertError) {
+                            enqueueTableSnapshot(tableName, data);
                             return false;
                         }
                     } else {
-                        // 删除现有数据
-                        const { error: deleteError } = await supabase
+                        const rows = tableName === 'products' ? toDbProducts(data)
+                                    : tableName === 'servers' ? toDbServers(data)
+                                    : data;
+                        const { error: upsertError } = await supabase
                             .from(tableName)
-                            .delete();
-                        
-                        if (deleteError) {
-                            console.error(`删除Supabase ${tableName}数据失败:`, deleteError);
-                            return false;
-                        }
-                        
-                        // 插入新数据
-                        const { error: insertError } = await supabase
-                            .from(tableName)
-                            .insert(data);
-                        
-                        if (insertError) {
-                            console.error(`保存Supabase ${tableName}数据失败:`, insertError);
+                            .upsert(rows, { onConflict: 'id' });
+                        if (upsertError) {
+                            enqueueTableSnapshot(tableName, data);
                             return false;
                         }
                     }
                     
                     return true;
                 } else {
-                    // Supabase客户端未初始化，仅保存到localStorage
+                    const ALLOW_QUEUE_TABLES = ['games','products','servers','notifications','advertisements'];
+                    if (ALLOW_QUEUE_TABLES.includes(tableName)) enqueueTableSnapshot(tableName, data);
                     return true;
                 }
             } catch (error) {
                 console.error('保存数据失败:', error);
-                // 保存到Supabase失败，但已经保存到localStorage，返回true
+                const tableName = key.replace('game_trade_', '');
+                const ALLOW_QUEUE_TABLES = ['games','products','servers','notifications','advertisements'];
+                if (ALLOW_QUEUE_TABLES.includes(tableName)) enqueueTableSnapshot(tableName, data);
                 return true;
             }
+            finally {
+                triggerAutoBackup();
+            }
+        }
+        function getSyncQueue() {
+            try {
+                const s = localStorage.getItem(SYNC_QUEUE_KEY);
+                return s ? JSON.parse(s) : [];
+            } catch { return []; }
+        }
+        function setSyncQueue(q) {
+            try { localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(q || [])); } catch {}
+        }
+        function enqueueTableSnapshot(tableName, data) {
+            const q = getSyncQueue();
+            const existingIdx = q.findIndex(x => x.table === tableName);
+            const payload = {
+                table: tableName,
+                data: tableName === 'products' ? toDbProducts(data)
+                     : tableName === 'servers' ? toDbServers(data)
+                     : tableName === 'users' ? toDbUsers(Object.values(data || {}))
+                     : data,
+                conflictTarget: tableName === 'users' ? 'username' : 'id',
+                ts: Date.now()
+            };
+            if (existingIdx >= 0) q[existingIdx] = payload; else q.push(payload);
+            setSyncQueue(q);
+        }
+        async function flushSyncQueue() {
+            if (!supabase) return;
+            const q = getSyncQueue();
+            if (!q.length) return;
+            const next = q[0];
+            try {
+                const { error: insErr } = await supabase.from(next.table).upsert(next.data, { onConflict: next.conflictTarget || 'id' });
+                if (insErr) return;
+                q.shift();
+                setSyncQueue(q);
+            } catch {}
+        }
+        function startSyncWorker() {
+            setInterval(async () => {
+                if (!supabase) {
+                    initializeSupabaseClient();
+                }
+                await flushSyncQueue();
+            }, 5000);
         }
         
-        // 导出数据为JSON文件
-        function exportData() {
+        async function exportData() {
             try {
-                // 获取所有数据
+                const users = await loadFromStorage(STORAGE_KEYS.USERS, []);
+                const gamesData = await loadFromStorage(STORAGE_KEYS.GAMES, []);
+                const productsData = await loadFromStorage(STORAGE_KEYS.PRODUCTS, []);
+                const serversData = await loadFromStorage(STORAGE_KEYS.SERVERS, []);
                 const allData = {
-                    users: loadFromStorage(STORAGE_KEYS.USERS, []),
-                    games: loadFromStorage(STORAGE_KEYS.GAMES, []),
-                    products: loadFromStorage(STORAGE_KEYS.PRODUCTS, []),
-                    servers: loadFromStorage(STORAGE_KEYS.SERVERS, []),
+                    users,
+                    games: gamesData,
+                    products: productsData,
+                    servers: serversData,
                     exportTime: new Date().toISOString()
                 };
-                
-                // 转换为JSON字符串
                 const jsonStr = JSON.stringify(allData, null, 2);
-                
-                // 创建Blob对象
                 const blob = new Blob([jsonStr], { type: 'application/json' });
-                
-                // 创建下载链接
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `game_trade_data_${new Date().getTime()}.json`;
-                
-                // 触发下载
                 document.body.appendChild(a);
                 a.click();
-                
-                // 清理
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                
                 alert('数据导出成功！');
-            } catch (error) {
-                console.error('数据导出失败:', error);
+            } catch {
                 alert('数据导出失败！请查看控制台获取详细信息。');
             }
         }
+        async function uploadFileToSupabase(path, blob, contentType) {
+            if (!supabase || !SUPABASE_BUCKET) return { ok: false, url: '' };
+            const { error } = await supabase.storage.from(SUPABASE_BUCKET).upload(path, blob, { contentType, upsert: true });
+            if (error) return { ok: false, url: '' };
+            const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+            return { ok: true, url: data.publicUrl || '' };
+        }
+        function sanitizeName(name) {
+            return (name || '').replace(/https?:\/\/\S+/g, '').replace(/[^\w.\-]/g, '_');
+        }
+        async function bucketExists() {
+            if (!supabase || !SUPABASE_BUCKET) return false;
+            try {
+                const { error } = await supabase.storage.from(SUPABASE_BUCKET).list('', { limit: 1 });
+                return !error;
+            } catch {
+                return false;
+            }
+        }
+        async function exportAndUploadData() {
+            if (!supabase) {
+                alert('未连接 Supabase，请先在个人设置填写配置');
+                return;
+            }
+            if (!(await bucketExists())) {
+                alert('存储桶不存在或不可访问，请在 Supabase Storage 创建并在个人设置填写正确桶名');
+                return;
+            }
+            try {
+                const users = await loadFromStorage(STORAGE_KEYS.USERS, []);
+                const gamesData = await loadFromStorage(STORAGE_KEYS.GAMES, []);
+                const productsData = await loadFromStorage(STORAGE_KEYS.PRODUCTS, []);
+                const serversData = await loadFromStorage(STORAGE_KEYS.SERVERS, []);
+                const allData = {
+                    users,
+                    games: gamesData,
+                    products: productsData,
+                    servers: serversData,
+                    exportTime: new Date().toISOString()
+                };
+                const jsonStr = JSON.stringify(allData, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const filename = `data/snapshot_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+                const res = await uploadFileToSupabase(filename, blob, 'application/json');
+                alert(res.ok ? ('导出并上传成功：' + res.url) : '上传到 Supabase 失败');
+            } catch {
+                alert('导出并上传失败');
+            }
+        }
+        async function uploadSelectedDataFile() {
+            const input = document.getElementById('dataFileInput');
+            if (!input || !input.files || input.files.length === 0) {
+                alert('请先选择文件');
+                return;
+            }
+            if (!supabase) {
+                alert('未连接 Supabase，请先在个人设置填写配置');
+                return;
+            }
+            if (!(await bucketExists())) {
+                alert('存储桶不存在或不可访问，请在 Supabase Storage 创建并在个人设置填写正确桶名');
+                return;
+            }
+            const file = input.files[0];
+            const contentType = file.type || 'application/octet-stream';
+            const name = sanitizeName(file.name);
+            const filename = `data/${Date.now()}_${name}`;
+            const res = await uploadFileToSupabase(filename, file, contentType);
+            alert(res.ok ? ('文件上传成功：' + res.url) : '文件上传失败');
+            if (res.ok) input.value = '';
+        }
 
-
+        async function autoBackupSnapshot() {
+            if (!supabase || !(await bucketExists())) return;
+            const usersData = await loadFromStorage(STORAGE_KEYS.USERS, {});
+            const payload = {
+                users: usersData,
+                games: games,
+                products: products,
+                servers: servers,
+                notifications: notifications,
+                advertisements: advertisements,
+                exportTime: new Date().toISOString()
+            };
+            const jsonStr = JSON.stringify(payload, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const filename = `data/autosnapshots/${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+            const res = await uploadFileToSupabase(filename, blob, 'application/json');
+            const el = document.getElementById('autoBackupStatus');
+            if (el) {
+                if (res.ok) {
+                    el.textContent = `自动备份成功：${new Date().toLocaleString()}  路径：${filename}`;
+                } else {
+                    el.textContent = `自动备份失败：${new Date().toLocaleString()}`;
+                }
+            }
+            const sql = buildSqlSnapshot(payload);
+            const sqlBlob = new Blob([sql], { type: 'application/sql' });
+            const sqlName = `data/autosnapshots/sql/${new Date().toISOString().replace(/[:.]/g,'-')}.sql`;
+            await uploadFileToSupabase(sqlName, sqlBlob, 'application/sql');
+        }
+        function triggerAutoBackup() {
+            if (!supabase) return;
+            if (autoBackupTimer) clearTimeout(autoBackupTimer);
+            autoBackupTimer = setTimeout(() => { autoBackupSnapshot(); }, 1500);
+        }
+        function esc(v) {
+            if (v === null || v === undefined) return 'NULL';
+            if (typeof v === 'number') return String(v);
+            return `'${String(v).replace(/'/g, "''")}'`;
+        }
+        function buildSqlSnapshot(p) {
+            const lines = [];
+            lines.push('-- Auto-generated data snapshot');
+            lines.push(`-- ${new Date().toISOString()}`);
+            // users object keyed by username
+            const usersArr = Object.values(p.users || {});
+            if (usersArr.length) {
+                const values = usersArr.map(u => `(${esc(u.id || null)}, ${esc(u.username)}, ${esc(u.email || null)}, ${esc(u.password)}, ${esc(!!u.isAdmin)}, ${esc(u.registeredDate || null)})`).join(',\n');
+                lines.push(`insert into public.users (id, username, email, password, isadmin, registereddate)\nvalues\n${values}\non conflict (id) do update set username=excluded.username, email=excluded.email, password=excluded.password, isadmin=excluded.isadmin, registereddate=excluded.registereddate;`);
+            }
+            // games
+            if ((p.games || []).length) {
+                const values = (p.games || []).map(g => `(${esc(g.id)}, ${esc(g.name)}, ${esc(g.image || null)})`).join(',\n');
+                lines.push(`insert into public.games (id, name, image)\nvalues\n${values}\non conflict (id) do update set name=excluded.name, image=excluded.image;`);
+            }
+            // servers
+            if ((p.servers || []).length) {
+                const values = (p.servers || []).map(s => `(${esc(s.id)}, ${esc(s.name)}, ${esc(s.gameId)})`).join(',\n');
+                lines.push(`insert into public.servers (id, name, gameid)\nvalues\n${values}\non conflict (id) do update set name=excluded.name, gameid=excluded.gameid;`);
+            }
+            // products
+            if ((p.products || []).length) {
+                const values = (p.products || []).map(x => `(${esc(x.id)}, ${esc(x.name)}, ${esc(x.server)}, ${esc(x.category)}, ${esc(x.unit)}, ${esc(x.price)}, ${esc(x.stock)}, ${esc(x.seller)}, ${esc(x.gameId)})`).join(',\n');
+                lines.push(`insert into public.products (id, name, server, category, unit, price, stock, seller, gameid)\nvalues\n${values}\non conflict (id) do update set name=excluded.name, server=excluded.server, category=excluded.category, unit=excluded.unit, price=excluded.price, stock=excluded.stock, seller=excluded.seller, gameid=excluded.gameid;`);
+            }
+            // notifications
+            if ((p.notifications || []).length) {
+                const values = (p.notifications || []).map(n => `(${esc(n.id)}, ${esc(n.content)}, ${esc(!!n.enabled)})`).join(',\n');
+                lines.push(`insert into public.notifications (id, content, enabled)\nvalues\n${values}\non conflict (id) do update set content=excluded.content, enabled=excluded.enabled;`);
+            }
+            // advertisements
+            if ((p.advertisements || []).length) {
+                const values = (p.advertisements || []).map(a => `(${esc(a.id)}, ${esc(a.title)}, ${esc(a.content)}, ${esc(a.image || null)}, ${esc(!!a.enabled)})`).join(',\n');
+                lines.push(`insert into public.advertisements (id, title, content, image, enabled)\nvalues\n${values}\non conflict (id) do update set title=excluded.title, content=excluded.content, image=excluded.image, enabled=excluded.enabled;`);
+            }
+            return lines.join('\n\n') + '\n';
+        }
         
         // 初始化数据
         async function initializeData() {
@@ -1579,23 +1916,48 @@
                 // 加载游戏数据
                 games = await loadFromStorage(STORAGE_KEYS.GAMES, INITIAL_DATA.games);
                 console.log('Loaded games:', games);
-                await saveToStorage(STORAGE_KEYS.GAMES, games);
+                if (Array.isArray(games) && games.length === 0 && supabase) {
+                    localStorage.setItem(STORAGE_KEYS.GAMES, JSON.stringify(INITIAL_DATA.games));
+                    games = INITIAL_DATA.games;
+                } else {
+                    await saveToStorage(STORAGE_KEYS.GAMES, games);
+                }
                 
                 // 加载商品数据
                 products = await loadFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_DATA.products);
-                await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                if (Array.isArray(products) && products.length === 0 && supabase) {
+                    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_DATA.products));
+                    products = INITIAL_DATA.products;
+                } else {
+                    await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                }
                 
                 // 加载服务器数据
                 servers = await loadFromStorage(STORAGE_KEYS.SERVERS, INITIAL_DATA.servers);
-                await saveToStorage(STORAGE_KEYS.SERVERS, servers);
+                if (Array.isArray(servers) && servers.length === 0 && supabase) {
+                    localStorage.setItem(STORAGE_KEYS.SERVERS, JSON.stringify(INITIAL_DATA.servers));
+                    servers = INITIAL_DATA.servers;
+                } else {
+                    await saveToStorage(STORAGE_KEYS.SERVERS, servers);
+                }
                 
                 // 加载通知数据
                 notifications = await loadFromStorage(STORAGE_KEYS.NOTIFICATIONS, INITIAL_DATA.notifications);
-                await saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+                if (Array.isArray(notifications) && notifications.length === 0 && supabase) {
+                    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(INITIAL_DATA.notifications));
+                    notifications = INITIAL_DATA.notifications;
+                } else {
+                    await saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+                }
                 
                 // 加载广告数据
                 advertisements = await loadFromStorage(STORAGE_KEYS.ADVERTISEMENTS, INITIAL_DATA.advertisements);
-                await saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+                if (Array.isArray(advertisements) && advertisements.length === 0 && supabase) {
+                    localStorage.setItem(STORAGE_KEYS.ADVERTISEMENTS, JSON.stringify(INITIAL_DATA.advertisements));
+                    advertisements = INITIAL_DATA.advertisements;
+                } else {
+                    await saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+                }
                 
                 // 加载当前用户（当前用户仍保存在localStorage中）
                 const currentUserItem = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
@@ -2043,6 +2405,8 @@
             loadNotificationsList();
             loadAdvertisementsList();
             loadGameOptions();
+            loadServerGameOptions();
+            loadServersList();
         }
         
         // 加载游戏列表
@@ -2127,6 +2491,17 @@
                 gameSelect.appendChild(option);
             });
         }
+        function loadServerGameOptions() {
+            const select = document.getElementById('serverGameId');
+            if (!select) return;
+            select.innerHTML = '';
+            games.forEach(game => {
+                const opt = document.createElement('option');
+                opt.value = game.id;
+                opt.textContent = game.name;
+                select.appendChild(opt);
+            });
+        }
         
         // 编辑游戏
         function editGame(gameId) {
@@ -2148,16 +2523,107 @@
             }
         }
         
+        function loadServersList() {
+            const serversList = document.getElementById('serversList');
+            if (!serversList) return;
+            serversList.innerHTML = '';
+            servers.forEach(s => {
+                const game = games.find(g => g.id === s.gameId);
+                const gameName = game ? game.name : '未知游戏';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${s.id}</td>
+                    <td>${s.name}</td>
+                    <td>${gameName}</td>
+                    <td>
+                        <button onclick="editServer(${s.id})" style="padding: 5px 10px; margin-right: 5px; background: #6952EB; color: white; border: none; border-radius: 4px; cursor: pointer;">编辑</button>
+                        <button onclick="deleteServer(${s.id})" style="padding: 5px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">删除</button>
+                    </td>
+                `;
+                serversList.appendChild(row);
+            });
+        }
+        function editServer(id) {
+            const s = servers.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('serverId').value = s.id;
+            document.getElementById('serverGameId').value = s.gameId;
+            document.getElementById('serverName').value = s.name;
+        }
+        function cancelServerEdit() {
+            document.getElementById('serverForm')?.reset();
+            const idEl = document.getElementById('serverId');
+            if (idEl) idEl.value = '';
+        }
+        async function handleServerForm(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('serverId').value) || 0;
+            const gameId = parseInt(document.getElementById('serverGameId').value) || 0;
+            const name = document.getElementById('serverName').value.trim();
+            if (!name || !gameId) {
+                alert('请填写服务器名称并选择所属游戏');
+                return;
+            }
+            if (id) {
+                if (supabase) {
+                    await supabase.from('servers').update({ name, gameid: gameId }).eq('id', id);
+                    const { data } = await supabase.from('servers').select('*').order('id', { ascending: true });
+                    servers = fromDbServers(data || []);
+                } else {
+                    const idx = servers.findIndex(s => s.id === id);
+                    if (idx !== -1) servers[idx] = { id, name, gameId };
+                }
+            } else {
+                if (supabase) {
+                    const { data: inserted } = await supabase.from('servers').insert({ name, gameid: gameId }).select('*');
+                    if (inserted && inserted.length) servers.push(fromDbServers(inserted)[0]);
+                    else {
+                        const newId = servers.length > 0 ? Math.max(...servers.map(s => s.id)) + 1 : 1;
+                        servers.push({ id: newId, name, gameId });
+                    }
+                } else {
+                    const newId = servers.length > 0 ? Math.max(...servers.map(s => s.id)) + 1 : 1;
+                    servers.push({ id: newId, name, gameId });
+                }
+            }
+            await saveToStorage(STORAGE_KEYS.SERVERS, servers);
+            loadServersList();
+            cancelServerEdit();
+            alert('服务器保存成功！');
+        }
+        async function deleteServer(id) {
+            if (!confirm('确定要删除这个服务器吗？')) return;
+            if (supabase) {
+                await supabase.from('servers').delete().eq('id', id);
+                const { data } = await supabase.from('servers').select('*').order('id', { ascending: true });
+                servers = fromDbServers(data || []);
+                await saveToStorage(STORAGE_KEYS.SERVERS, servers);
+            } else {
+                servers = servers.filter(s => s.id !== id);
+                await saveToStorage(STORAGE_KEYS.SERVERS, servers);
+            }
+            loadServersList();
+            alert('服务器删除成功！');
+        }
+        
         // 删除游戏
         async function deleteGame(gameId) {
             if (confirm('确定要删除这个游戏吗？相关商品也会被删除。')) {
-                // 删除游戏
-                games = games.filter(g => g.id !== gameId);
-                await saveToStorage(STORAGE_KEYS.GAMES, games);
-                
-                // 删除相关商品
-                products = products.filter(p => p.gameId !== gameId);
-                await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                if (supabase) {
+                    await supabase.from('products').delete().eq('gameid', gameId);
+                    await supabase.from('games').delete().eq('id', gameId);
+                    const { data: gData } = await supabase.from('games').select('*').order('id', { ascending: true });
+                    games = gData || [];
+                    const { data: pData } = await supabase.from('products').select('*');
+                    products = fromDbProducts(pData || []);
+                    await saveToStorage(STORAGE_KEYS.GAMES, games);
+                    await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                } else {
+                    games = games.filter(g => g.id !== gameId);
+                    await saveToStorage(STORAGE_KEYS.GAMES, games);
+                    products = products.filter(p => p.gameId !== gameId);
+                    await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                }
                 
                 // 更新列表
                 loadGamesList();
@@ -2186,8 +2652,15 @@
         // 删除商品
         async function deleteProduct(productId) {
             if (confirm('确定要删除这个商品吗？')) {
-                products = products.filter(p => p.id !== productId);
-                await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                if (supabase) {
+                    await supabase.from('products').delete().eq('id', productId);
+                    const { data } = await supabase.from('products').select('*').order('id', { ascending: true });
+                    products = fromDbProducts(data || []);
+                    await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                } else {
+                    products = products.filter(p => p.id !== productId);
+                    await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+                }
                 loadProductsList();
                 alert('商品删除成功！');
             }
@@ -2462,23 +2935,29 @@
             }
             
             if (id) {
-                // 编辑现有通知
-                const index = notifications.findIndex(n => n.id === id);
-                if (index !== -1) {
-                    notifications[index] = {
-                        id: id,
-                        content: content,
-                        enabled: enabled
-                    };
+                if (supabase) {
+                    await supabase.from('notifications').update({ content, enabled }).eq('id', id);
+                    const { data } = await supabase.from('notifications').select('*').order('id', { ascending: true });
+                    notifications = data || [];
+                } else {
+                    const index = notifications.findIndex(n => n.id === id);
+                    if (index !== -1) {
+                        notifications[index] = { id, content, enabled };
+                    }
                 }
             } else {
-                // 添加新通知
-                const newId = notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 1;
-                notifications.push({
-                    id: newId,
-                    content: content,
-                    enabled: enabled
-                });
+                if (supabase) {
+                    const { data: inserted } = await supabase.from('notifications').insert({ content, enabled }).select('*');
+                    if (inserted && inserted.length) {
+                        notifications.push(inserted[0]);
+                    } else {
+                        const newId = notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 1;
+                        notifications.push({ id: newId, content, enabled });
+                    }
+                } else {
+                    const newId = notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 1;
+                    notifications.push({ id: newId, content, enabled });
+                }
             }
             
             await saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
@@ -2499,36 +2978,42 @@
             const id = parseInt(document.getElementById('advertisementId').value) || 0;
             const title = document.getElementById('advertisementTitle').value.trim();
             const content = document.getElementById('advertisementContent').value.trim();
-            const image = document.getElementById('advertisementImage').value.trim();
+            let image = document.getElementById('advertisementImage').value.trim();
             const enabled = document.getElementById('advertisementEnabled').value === 'true';
             
             if (!title || !content) {
                 alert('请输入广告标题和内容！');
                 return;
             }
+            if (image && image.startsWith('data:image/') && supabase) {
+                const uploaded = await uploadAdImageToSupabase(image, title.replace(/\s+/g, ''));
+                if (uploaded) image = uploaded;
+            }
             
             if (id) {
-                // 编辑现有广告
-                const index = advertisements.findIndex(a => a.id === id);
-                if (index !== -1) {
-                    advertisements[index] = {
-                        id: id,
-                        title: title,
-                        content: content,
-                        image: image,
-                        enabled: enabled
-                    };
+                if (supabase) {
+                    await supabase.from('advertisements').update({ title, content, image, enabled }).eq('id', id);
+                    const { data } = await supabase.from('advertisements').select('*').order('id', { ascending: true });
+                    advertisements = data || [];
+                } else {
+                    const index = advertisements.findIndex(a => a.id === id);
+                    if (index !== -1) {
+                        advertisements[index] = { id, title, content, image, enabled };
+                    }
                 }
             } else {
-                // 添加新广告
-                const newId = advertisements.length > 0 ? Math.max(...advertisements.map(a => a.id)) + 1 : 1;
-                advertisements.push({
-                    id: newId,
-                    title: title,
-                    content: content,
-                    image: image,
-                    enabled: enabled
-                });
+                if (supabase) {
+                    const { data: inserted } = await supabase.from('advertisements').insert({ title, content, image, enabled }).select('*');
+                    if (inserted && inserted.length) {
+                        advertisements.push(inserted[0]);
+                    } else {
+                        const newId = advertisements.length > 0 ? Math.max(...advertisements.map(a => a.id)) + 1 : 1;
+                        advertisements.push({ id: newId, title, content, image, enabled });
+                    }
+                } else {
+                    const newId = advertisements.length > 0 ? Math.max(...advertisements.map(a => a.id)) + 1 : 1;
+                    advertisements.push({ id: newId, title, content, image, enabled });
+                }
             }
             
             await saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
@@ -2545,8 +3030,15 @@
         // 删除通知
         async function deleteNotification(id) {
             if (confirm('确定要删除这个通知吗？')) {
-                notifications = notifications.filter(n => n.id !== id);
-                await saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+                if (supabase) {
+                    await supabase.from('notifications').delete().eq('id', id);
+                    const { data } = await supabase.from('notifications').select('*').order('id', { ascending: true });
+                    notifications = data || [];
+                    await saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+                } else {
+                    notifications = notifications.filter(n => n.id !== id);
+                    await saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+                }
                 loadNotificationsList();
                 initializeMarquee();
                 alert('通知删除成功！');
@@ -2556,8 +3048,15 @@
         // 删除广告
         async function deleteAdvertisement(id) {
             if (confirm('确定要删除这个广告吗？')) {
-                advertisements = advertisements.filter(a => a.id !== id);
-                await saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+                if (supabase) {
+                    await supabase.from('advertisements').delete().eq('id', id);
+                    const { data } = await supabase.from('advertisements').select('*').order('id', { ascending: true });
+                    advertisements = data || [];
+                    await saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+                } else {
+                    advertisements = advertisements.filter(a => a.id !== id);
+                    await saveToStorage(STORAGE_KEYS.ADVERTISEMENTS, advertisements);
+                }
                 loadAdvertisementsList();
                 initializeAdvertisements();
                 alert('广告删除成功！');
@@ -2899,6 +3398,9 @@
                 
                 // 设置当前用户
                 currentUser = user;
+                if (currentUser && currentUser.username === 'admin') {
+                    currentUser.isAdmin = true;
+                }
                 // 保存当前用户到localStorage
                 await saveToStorage(STORAGE_KEYS.CURRENT_USER, user);
                 
@@ -3107,6 +3609,7 @@
             document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
             document.getElementById('gameForm')?.addEventListener('submit', handleGameForm);
             document.getElementById('productForm')?.addEventListener('submit', handleProductForm);
+            document.getElementById('serverForm')?.addEventListener('submit', handleServerForm);
             document.getElementById('changePasswordForm')?.addEventListener('submit', handleChangePassword);
             
             // 点击模态框外部关闭
@@ -3265,6 +3768,7 @@
             initializeMarquee(); // 初始化滚动通知
             initializeAdvertisements(); // 初始化广告显示
             updateNavbar(); // 初始化导航栏
+            startSyncWorker();
         });
         // 保存游戏表单提交
         document.getElementById('gameForm')?.addEventListener('submit', async function(e) {
@@ -3284,23 +3788,29 @@
             }
             
             if (id) {
-                // 编辑现有游戏
-                const index = games.findIndex(g => g.id === id);
-                if (index !== -1) {
-                    games[index] = {
-                        id: id,
-                        name: name,
-                        image: image
-                    };
+                if (supabase) {
+                    await supabase.from('games').update({ name, image }).eq('id', id);
+                    const { data } = await supabase.from('games').select('*').order('id', { ascending: true });
+                    games = data || [];
+                } else {
+                    const index = games.findIndex(g => g.id === id);
+                    if (index !== -1) {
+                        games[index] = { id, name, image };
+                    }
                 }
             } else {
-                // 添加新游戏
-                const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
-                games.push({
-                    id: newId,
-                    name: name,
-                    image: image
-                });
+                if (supabase) {
+                    const { data: inserted } = await supabase.from('games').insert({ name, image }).select('*');
+                    if (inserted && inserted.length) {
+                        games.push(inserted[0]);
+                    } else {
+                        const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
+                        games.push({ id: newId, name, image });
+                    }
+                } else {
+                    const newId = games.length > 0 ? Math.max(...games.map(g => g.id)) + 1 : 1;
+                    games.push({ id: newId, name, image });
+                }
             }
             
             await saveToStorage(STORAGE_KEYS.GAMES, games);
@@ -3310,22 +3820,87 @@
         });
         document.getElementById('supabaseConfigForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            const url = document.getElementById('supabaseUrlInput').value.trim();
+            const url = normalizeSupabaseUrl(document.getElementById('supabaseUrlInput').value.trim());
             const key = document.getElementById('supabaseKeyInput').value.trim();
-            const bucket = document.getElementById('supabaseBucketInput').value.trim() || 'game-icons';
+            const bucket = document.getElementById('supabaseBucketInput').value.trim() || 'best';
+            const v = validateSupabaseKey(key);
+            if (!v.ok) {
+                if (v.reason === 'publishable') {
+                    alert('当前填写的是 Publishable key。请使用 Supabase Settings → API 的匿名公共密钥（Anon Key），它是以ey开头的JWT。');
+                } else {
+                    alert('Anon Key 格式不正确，请粘贴以ey开头的JWT。');
+                }
+                return;
+            }
             localStorage.setItem('supabase_url', url);
             localStorage.setItem('supabase_anon_key', key);
             localStorage.setItem('supabase_bucket', bucket);
             initializeSupabaseClient();
             alert('Supabase 配置已保存');
         });
+        document.getElementById('testSupabaseBtn')?.addEventListener('click', async function() {
+            const url = normalizeSupabaseUrl(document.getElementById('supabaseUrlInput').value.trim());
+            const key = document.getElementById('supabaseKeyInput').value.trim();
+            if (!url || !key) {
+                alert('请填写 URL 和 Anon Key');
+                return;
+            }
+            const v = validateSupabaseKey(key);
+            if (!v.ok) {
+                if (v.reason === 'publishable') {
+                    alert('当前填写的是 Publishable key。请使用 Supabase Settings → API 的匿名公共密钥（Anon Key），它是以ey开头的JWT。');
+                } else {
+                    alert('Anon Key 格式不正确，请粘贴以ey开头的JWT。');
+                }
+                return;
+            }
+            localStorage.setItem('supabase_url', url);
+            localStorage.setItem('supabase_anon_key', key);
+            initializeSupabaseClient();
+            if (!supabase) {
+                alert('未连接 Supabase，请检查 URL 与 Anon Key');
+                return;
+            }
+            const bucketOk = await bucketExists();
+            const { data, error } = await supabase.from('games').select('*').limit(1);
+            if (bucketOk && !error) {
+                alert('连接正常：存储桶可访问，数据库查询成功');
+            } else {
+                alert('连接异常：请检查 URL/Anon Key/桶名与策略');
+            }
+            updateSupabaseEffectiveInfo();
+        });
+        document.getElementById('resetSupabaseBtn')?.addEventListener('click', function() {
+            localStorage.removeItem('supabase_url');
+            localStorage.removeItem('supabase_anon_key');
+            localStorage.removeItem('supabase_bucket');
+            supabase = null;
+            const urlEl = document.getElementById('supabaseUrlInput');
+            const keyEl = document.getElementById('supabaseKeyInput');
+            const bucketEl = document.getElementById('supabaseBucketInput');
+            if (urlEl) urlEl.value = '';
+            if (keyEl) keyEl.value = '';
+            if (bucketEl) bucketEl.value = 'best';
+            updateSupabaseEffectiveInfo();
+            alert('已清空本地 Supabase 配置，请重新填写。');
+        });
+        function updateSupabaseEffectiveInfo() {
+            const infoEl = document.getElementById('supabaseEffectiveInfo');
+            if (!infoEl) return;
+            const u = localStorage.getItem('supabase_url') || '';
+            const nu = normalizeSupabaseUrl(u);
+            let host = '';
+            try { host = new URL(nu).host; } catch { host = ''; }
+            infoEl.textContent = nu ? (`当前生效 URL: ${nu}，Host: ${host}`) : '未配置 Supabase URL';
+        }
         (function prefillSupabaseConfig() {
             const urlEl = document.getElementById('supabaseUrlInput');
             const keyEl = document.getElementById('supabaseKeyInput');
             const bucketEl = document.getElementById('supabaseBucketInput');
             if (urlEl) urlEl.value = localStorage.getItem('supabase_url') || '';
             if (keyEl) keyEl.value = localStorage.getItem('supabase_anon_key') || '';
-            if (bucketEl) bucketEl.value = localStorage.getItem('supabase_bucket') || 'game-icons';
+            if (bucketEl) bucketEl.value = localStorage.getItem('supabase_bucket') || 'best';
+            updateSupabaseEffectiveInfo();
         })();
         
         // 保存商品表单提交
@@ -3348,35 +3923,33 @@
             }
             
             if (id) {
-                // 编辑现有商品
-                const index = products.findIndex(p => p.id === id);
-                if (index !== -1) {
-                    products[index] = {
-                        id: id,
-                        gameId: gameId,
-                        name: name,
-                        server: server,
-                        category: category,
-                        unit: unit,
-                        price: price,
-                        stock: stock,
-                        seller: seller
-                    };
+                if (supabase) {
+                    await supabase.from('products').update({
+                        name, server, category, unit, price, stock, seller, gameid: gameId
+                    }).eq('id', id);
+                    const { data } = await supabase.from('products').select('*').order('id', { ascending: true });
+                    products = fromDbProducts(data || []);
+                } else {
+                    const index = products.findIndex(p => p.id === id);
+                    if (index !== -1) {
+                        products[index] = { id, gameId, name, server, category, unit, price, stock, seller };
+                    }
                 }
             } else {
-                // 添加新商品
-                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-                products.push({
-                    id: newId,
-                    gameId: gameId,
-                    name: name,
-                    server: server,
-                    category: category,
-                    unit: unit,
-                    price: price,
-                    stock: stock,
-                    seller: seller
-                });
+                if (supabase) {
+                    const { data: inserted } = await supabase.from('products').insert({
+                        name, server, category, unit, price, stock, seller, gameid: gameId
+                    }).select('*');
+                    if (inserted && inserted.length) {
+                        products.push(fromDbProducts(inserted)[0]);
+                    } else {
+                        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                        products.push({ id: newId, gameId, name, server, category, unit, price, stock, seller });
+                    }
+                } else {
+                    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                    products.push({ id: newId, gameId, name, server, category, unit, price, stock, seller });
+                }
             }
             
             await saveToStorage(STORAGE_KEYS.PRODUCTS, products);
