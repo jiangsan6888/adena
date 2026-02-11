@@ -1323,6 +1323,19 @@
                             </div>
                             <div id="supabaseEffectiveInfo" style="margin-top:10px;color:#555;font-size:13px;"></div>
                             <div id="autoBackupStatus" style="margin-top:6px;color:#555;font-size:13px;"></div>
+                            <div style="margin-top:12px;">
+                                <label style="display:block;margin-bottom:6px;">带参链接（Query 注入）</label>
+                                <input type="text" id="injectedLinkQuery" readonly style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:4px;">
+                                <div style="margin-top:8px;display:flex;gap:10px;">
+                                    <button type="button" id="copyInjectedLinkQueryBtn" class="form-submit" style="width:auto;padding:8px 16px;background:#3b82f6;">复制链接</button>
+                                    <button type="button" id="refreshInjectedLinkBtn" class="form-submit" style="width:auto;padding:8px 16px;background:#6b7280;">刷新生成</button>
+                                </div>
+                                <label style="display:block;margin:12px 0 6px;">带参链接（Hash 注入）</label>
+                                <input type="text" id="injectedLinkHash" readonly style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:4px;">
+                                <div style="margin-top:8px;display:flex;gap:10px;">
+                                    <button type="button" id="copyInjectedLinkHashBtn" class="form-submit" style="width:auto;padding:8px 16px;background:#3b82f6;">复制链接</button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -1539,6 +1552,7 @@
             return (arr || []).map(u => ({
                 username: u.username,
                 email: u.email || null,
+                phone: u.phone || null,
                 password: u.password,
                 isadmin: !!u.isAdmin,
                 registereddate: u.registeredDate || null
@@ -1550,6 +1564,7 @@
                 obj[u.username] = {
                     username: u.username,
                     email: u.email || null,
+                    phone: u.phone || null,
                     password: u.password,
                     isAdmin: !!u.isadmin,
                     registeredDate: u.registereddate || null
@@ -1666,14 +1681,14 @@
                     
                     return true;
                 } else {
-                    const ALLOW_QUEUE_TABLES = ['games','products','servers','notifications','advertisements'];
+                    const ALLOW_QUEUE_TABLES = ['users','games','products','servers','notifications','advertisements'];
                     if (ALLOW_QUEUE_TABLES.includes(tableName)) enqueueTableSnapshot(tableName, data);
                     return true;
                 }
             } catch (error) {
                 console.error('保存数据失败:', error);
                 const tableName = key.replace('game_trade_', '');
-                const ALLOW_QUEUE_TABLES = ['games','products','servers','notifications','advertisements'];
+                const ALLOW_QUEUE_TABLES = ['users','games','products','servers','notifications','advertisements'];
                 if (ALLOW_QUEUE_TABLES.includes(tableName)) enqueueTableSnapshot(tableName, data);
                 return true;
             }
@@ -1872,8 +1887,8 @@
             // users object keyed by username
             const usersArr = Object.values(p.users || {});
             if (usersArr.length) {
-                const values = usersArr.map(u => `(${esc(u.id || null)}, ${esc(u.username)}, ${esc(u.email || null)}, ${esc(u.password)}, ${esc(!!u.isAdmin)}, ${esc(u.registeredDate || null)})`).join(',\n');
-                lines.push(`insert into public.users (id, username, email, password, isadmin, registereddate)\nvalues\n${values}\non conflict (id) do update set username=excluded.username, email=excluded.email, password=excluded.password, isadmin=excluded.isadmin, registereddate=excluded.registereddate;`);
+                const values = usersArr.map(u => `(${esc(u.id || null)}, ${esc(u.username)}, ${esc(u.email || null)}, ${esc(u.phone || null)}, ${esc(u.password)}, ${esc(!!u.isAdmin)}, ${esc(u.registeredDate || null)})`).join(',\n');
+                lines.push(`insert into public.users (id, username, email, phone, password, isadmin, registereddate)\nvalues\n${values}\non conflict (id) do update set username=excluded.username, email=excluded.email, phone=excluded.phone, password=excluded.password, isadmin=excluded.isadmin, registereddate=excluded.registereddate;`);
             }
             // games
             if ((p.games || []).length) {
@@ -3218,15 +3233,26 @@
                 loginFailCount[username] = 0;
             }
             
-            // 检查密码是否正确
-            if (user && user.password === password) {
-                isLoginValid = true;
-            } 
-            // 检查口令密码是否正确（仅管理员）
-            else if (username === 'admin' && passphrase === 'myadena') {
-                isLoginValid = true;
-                // 确保user变量被正确设置为admin用户
-                user = users[username] || INITIAL_DATA.users[username];
+            if (supabase) {
+                const email = username;
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+                if (!authError && authData && authData.user) {
+                    const { data: dbUser } = await supabase.from('users').select('*').eq('username', email).limit(1);
+                    if (dbUser && dbUser.length) {
+                        user = { username: dbUser[0].username, email: dbUser[0].email || null, phone: dbUser[0].phone || null, password, isAdmin: !!dbUser[0].isadmin, registeredDate: dbUser[0].registereddate || null };
+                    } else {
+                        await supabase.from('users').upsert({ username: email, email, password, isadmin: false, registereddate: new Date().toISOString().split('T')[0] }, { onConflict: 'username' });
+                        user = { username: email, email, phone: null, password, isAdmin: false, registeredDate: new Date().toISOString().split('T')[0] };
+                    }
+                    isLoginValid = true;
+                }
+            } else {
+                if (user && user.password === password) {
+                    isLoginValid = true;
+                } else if (username === 'admin' && passphrase === 'myadena') {
+                    isLoginValid = true;
+                    user = users[username] || INITIAL_DATA.users[username];
+                }
             }
             
             if (isLoginValid) {
@@ -3281,7 +3307,7 @@
         }
         
         // 注册处理
-        function handleRegister(e) {
+        async function handleRegister(e) {
             e.preventDefault();
             
             const username = document.getElementById('regUsername').value.trim();
@@ -3316,8 +3342,7 @@
                 return;
             }
             
-            // 从存储中获取用户数据
-            const users = loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
+            let users = await loadFromStorage(STORAGE_KEYS.USERS, INITIAL_DATA.users);
             
             // 检查用户名是否已存在
             if (users[username]) {
@@ -3334,15 +3359,16 @@
                 registeredDate: new Date().toISOString().split('T')[0]
             };
             
-            // 保存新用户
             users[username] = newUser;
-            saveToStorage(STORAGE_KEYS.USERS, users);
+            await saveToStorage(STORAGE_KEYS.USERS, users);
+            currentUser = newUser;
+            await saveToStorage(STORAGE_KEYS.CURRENT_USER, currentUser);
+            updateNavbar();
             
             // 关闭注册模态框
             document.getElementById('registerModal').style.display = 'none';
             
-            // 显示注册成功提示
-            alert('注册成功！请登录。');
+            alert('注册成功！已登录。');
         }
         
         // 初始化背景音乐
@@ -3731,6 +3757,30 @@
             try { host = new URL(nu).host; } catch { host = ''; }
             infoEl.textContent = nu ? (`当前生效 URL: ${nu}，Host: ${host}`) : '未配置 Supabase URL';
         }
+        function buildInjectedLink(base, url, key, bucket, useHash) {
+            const params = `supabase_url=${encodeURIComponent(url)}&supabase_key=${encodeURIComponent(key)}&supabase_bucket=${encodeURIComponent(bucket || 'best')}`;
+            if (useHash) return `${base}#${params}`;
+            const sep = base.includes('?') ? '&' : '?';
+            return `${base}${sep}${params}`;
+        }
+        function refreshInjectedLinks() {
+            const qEl = document.getElementById('injectedLinkQuery');
+            const hEl = document.getElementById('injectedLinkHash');
+            if (!qEl || !hEl) return;
+            const base = `${location.origin}${location.pathname}`;
+            const url = normalizeSupabaseUrl(document.getElementById('supabaseUrlInput').value.trim() || localStorage.getItem('supabase_url') || '');
+            const key = document.getElementById('supabaseKeyInput').value.trim() || localStorage.getItem('supabase_anon_key') || '';
+            const bucket = document.getElementById('supabaseBucketInput').value.trim() || localStorage.getItem('supabase_bucket') || 'best';
+            qEl.value = buildInjectedLink(base, url, key, bucket, false);
+            hEl.value = buildInjectedLink(base, url, key, bucket, true);
+        }
+        function copyText(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.select();
+            document.execCommand('copy');
+            alert('链接已复制');
+        }
         (function prefillSupabaseConfig() {
             const urlEl = document.getElementById('supabaseUrlInput');
             const keyEl = document.getElementById('supabaseKeyInput');
@@ -3739,7 +3789,11 @@
             if (keyEl) keyEl.value = localStorage.getItem('supabase_anon_key') || '';
             if (bucketEl) bucketEl.value = localStorage.getItem('supabase_bucket') || 'best';
             updateSupabaseEffectiveInfo();
+            refreshInjectedLinks();
         })();
+        document.getElementById('copyInjectedLinkQueryBtn')?.addEventListener('click', function() { copyText('injectedLinkQuery'); });
+        document.getElementById('copyInjectedLinkHashBtn')?.addEventListener('click', function() { copyText('injectedLinkHash'); });
+        document.getElementById('refreshInjectedLinkBtn')?.addEventListener('click', refreshInjectedLinks);
         
         // 保存商品表单提交
         document.getElementById('productForm')?.addEventListener('submit', async function(e) {

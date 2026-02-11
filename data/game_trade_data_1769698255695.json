@@ -1,0 +1,81 @@
+{
+  "users": {
+    "best1": {
+      "username": "best1",
+      "phone": "13894339188",
+      "password": "123456",
+      "isAdmin": false,
+      "registeredDate": "2026-01-28"
+    },
+    "admin": {
+      "username": "admin",
+      "email": "admin@system.com",
+      "password": "admin",
+      "isAdmin": true,
+      "registeredDate": "2024-01-01"
+    }
+  },
+  "games": [
+    {
+      "id": 1,
+      "name": "아이온2",
+      "image": "img/아이온.jpg"
+    },
+    {
+      "id": 2,
+      "name": "리니지2",
+      "image": "img/리니지2.jpg"
+    },
+    {
+      "id": 3,
+      "name": "리니지M",
+      "image": "img/리니지m.jpg"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "满级神装 3000战力",
+      "server": "天启[天族]",
+      "unit": "件",
+      "price": 899,
+      "stock": 5,
+      "category": "装备",
+      "seller": "装备专卖",
+      "gameId": 1
+    },
+    {
+      "id": 2,
+      "name": "游戏币 手工打金",
+      "server": "荣耀[魔族]",
+      "unit": "万",
+      "price": 320,
+      "stock": 999,
+      "category": "游戏币",
+      "seller": "游戏币商",
+      "gameId": 1
+    },
+    {
+      "id": 3,
+      "name": "满级账号 2800战力",
+      "server": "永恒[天族]",
+      "unit": "个",
+      "price": 1599,
+      "stock": 1,
+      "category": "账号",
+      "seller": "账号商",
+      "gameId": 1
+    }
+  ],
+  "servers": [
+    "天启[天族]",
+    "天启[魔族]",
+    "荣耀[天族]",
+    "荣耀[魔族]",
+    "永恒[天族]",
+    "永恒[魔族]",
+    "传奇[天族]",
+    "传奇[魔族]"
+  ],
+  "exportTime": "2026-01-29T14:50:55.694Z"
+}

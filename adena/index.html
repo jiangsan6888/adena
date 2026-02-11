@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>adena - Supabase 初始化</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+</head>
+<body>
+<div style="max-width:640px;margin:40px auto;padding:20px;border:1px solid #e2e8f0;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;">
+<h2 style="margin-bottom:10px;">Supabase 初始化</h2>
+<div style="display:flex;gap:10px;margin-bottom:10px;">
+<button id="btnTest" style="padding:8px 16px;background:#10b981;color:#fff;border:none;border-radius:4px;cursor:pointer;">测试连接</button>
+<button id="btnClear" style="padding:8px 16px;background:#ef4444;color:#fff;border:none;border-radius:4px;cursor:pointer;">清空本地配置</button>
+<button id="btnRefreshLinks" style="padding:8px 16px;background:#6b7280;color:#fff;border:none;border-radius:4px;cursor:pointer;">生成带参链接</button>
+</div>
+<div id="status" style="color:#374151;margin-bottom:10px;"></div>
+<div>
+<label style="display:block;margin:8px 0 4px;">Query 注入链接</label>
+<input id="linkQuery" type="text" readonly style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:4px;">
+<div style="margin-top:8px;">
+<button id="btnCopyQuery" style="padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;">复制</button>
+</div>
+<label style="display:block;margin:12px 0 4px;">Hash 注入链接</label>
+<input id="linkHash" type="text" readonly style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:4px;">
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script>
+function normalizeSupabaseUrl(u){try{const p=new URL(u);return p.protocol+'//'+p.host}catch{const s=(u||'').trim();const i=s.indexOf('.supabase.co');return i!==-1?s.slice(0,i+'.supabase.co'.length):s}}
+function getParamFromString(str,key){const a=(str||'').split(/[&?]/).filter(Boolean);for(const p of a){const kv=p.split('=');if(decodeURIComponent(kv[0])===key)return decodeURIComponent(kv[1]||'')}return ''}
+function parseConfigFromUrl(){const h=(location.hash||'').replace(/^#/,'');const s=(location.search||'').replace(/^\?/,'');const url=getParamFromString(h,'supabase_url')||getParamFromString(s,'supabase_url');const key=getParamFromString(h,'supabase_key')||getParamFromString(s,'supabase_key');const bucket=getParamFromString(h,'supabase_bucket')||getParamFromString(s,'supabase_bucket');return{url,key,bucket}}
+function applyConfig(cfg){const url=normalizeSupabaseUrl(cfg.url||'');const key=(cfg.key||'').trim();const bucket=(cfg.bucket||'').trim()||'best';if(url&&key){localStorage.setItem('supabase_url',url);localStorage.setItem('supabase_anon_key',key);localStorage.setItem('supabase_bucket',bucket);return true}return false}
+(function autoInject(){const cfg=parseConfigFromUrl();if(cfg.url&&cfg.key)applyConfig(cfg)})();
+let supabase=null;let SUPABASE_URL=localStorage.getItem('supabase_url')||'';let SUPABASE_ANON_KEY=localStorage.getItem('supabase_anon_key')||'';let SUPABASE_BUCKET=localStorage.getItem('supabase_bucket')||'best';
+function initClient(){SUPABASE_URL=normalizeSupabaseUrl(localStorage.getItem('supabase_url')||SUPABASE_URL);SUPABASE_ANON_KEY=localStorage.getItem('supabase_anon_key')||SUPABASE_ANON_KEY;SUPABASE_BUCKET=localStorage.getItem('supabase_bucket')||SUPABASE_BUCKET;supabase=null;if(SUPABASE_URL&&SUPABASE_ANON_KEY){try{supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){supabase=null}}}
+initClient();
+async function test(){initClient();const el=document.getElementById('status');if(!supabase){el.textContent='未连接 Supabase，请先通过带参链接注入配置';return}const { data, error }=await supabase.from('games').select('*').limit(1);if(error){el.textContent='连接异常：'+(error.message||'未知错误')}else{el.textContent='连接正常，返回记录数：'+(data?data.length:0)}}
+function buildLink(base,url,key,bucket,useHash){const params='supabase_url='+encodeURIComponent(url)+'&supabase_key='+encodeURIComponent(key)+'&supabase_bucket='+encodeURIComponent(bucket||'best');if(useHash)return base+'#'+params;const sep=base.includes('?')?'&':'?';return base+sep+params}
+function refreshLinks(){const b=location.origin+location.pathname;const u=normalizeSupabaseUrl(localStorage.getItem('supabase_url')||SUPABASE_URL||'');const k=localStorage.getItem('supabase_anon_key')||SUPABASE_ANON_KEY||'';const bu=localStorage.getItem('supabase_bucket')||SUPABASE_BUCKET||'best';document.getElementById('linkQuery').value=buildLink(b,u,k,bu,false);document.getElementById('linkHash').value=buildLink(b,u,k,bu,true)}
+function copy(id){const el=document.getElementById(id);if(!el)return;el.select();document.execCommand('copy');}
+document.getElementById('btnTest').addEventListener('click',test);
+document.getElementById('btnClear').addEventListener('click',function(){localStorage.removeItem('supabase_url');localStorage.removeItem('supabase_anon_key');localStorage.removeItem('supabase_bucket');initClient();document.getElementById('status').textContent='已清空本地配置';refreshLinks()});
+document.getElementById('btnRefreshLinks').addEventListener('click',refreshLinks);
+document.getElementById('btnCopyQuery').addEventListener('click',function(){copy('linkQuery')});
+refreshLinks();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "url": "https://YOUR_PROJECT.supabase.co",
+  "anon_key": "eyYOUR_ANON_PUBLIC_JWT",
+  "bucket": "best"
+}
